@@ -37,6 +37,7 @@ const submitLogin = async () => {
 </script>
 
 <template>
+    <div> 
     <FloatingConfigurator />
     <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
         <div class="flex flex-col items-center justify-center">
@@ -60,42 +61,44 @@ const submitLogin = async () => {
                                 />
                             </g>
                         </svg>
-                        <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome to PrimeLand!</div>
-                        <span class="text-muted-color font-medium">Sign in to continue</span>
+                        <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome Covoiturage</div>
+                        <span class="text-muted-color font-medium">Sign in</span>
                     </div>
 
-                    <form @submit.prevent="submitLogin">
-                        <div class="field mb-3">
-                            <label for="email" class="block text-sm font-medium text-900">Email</label>
-                            <input type="email" id="email" v-model="email" class="w-full p-3 mt-2 border-1 rounded-md" placeholder="Enter your email" />
-                        </div>
+                                 <form @submit.prevent="submitLogin">
+                            <div class="field mb-3">
+                                <label for="email" class="block text-sm font-medium text-900">Email</label>
+                                <input type="email" id="email" v-model="email" class="w-full p-3 mt-2 border-1 rounded-md" placeholder="Enter your email" />
+                            </div>
 
-                        <div class="field mb-3">
-                            <label for="password" class="block text-sm font-medium text-900">Password</label>
-                            <input type="password" id="password" v-model="password" class="w-full p-3 mt-2 border-1 rounded-md" placeholder="Enter your password" />
-                        </div>
+                            <div class="field mb-3">
+                                <label for="password" class="block text-sm font-medium text-900">Password</label>
+                                <input type="password" id="password" v-model="password" class="w-full p-3 mt-2 border-1 rounded-md" placeholder="Enter your password" />
+                            </div>
 
-                        <div class="field mb-3">
-                            <label for="remember" class="flex items-center text-sm font-medium text-900">
-                                <input type="checkbox" id="remember" v-model="remember" class="mr-2" />
-                                Remember me
-                            </label>
-                        </div>
+                            <div class="field mb-3">
+                                <label for="remember" class="flex items-center text-sm font-medium text-900">
+                                    <input type="checkbox" id="remember" v-model="remember" class="mr-2" />
+                                    Remember me
+                                </label>
+                            </div>
 
-                        <div class="text-center">
-                            <button type="submit" class="w-full py-3 mt-6 bg-primary-500 text-white font-medium text-lg rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" :disabled="loading">
-                                <span v-if="loading">Loading...</span>
-                                <span v-else>Sign In</span>
-                            </button>
-                        </div>
+                            <div class="text-center">
+                                <button type="submit" class="w-full py-3 mt-6 bg-primary-500 text-white font-medium text-lg rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" :disabled="loading">
+                                    <span v-if="loading">Loading...</span>
+                                    <span v-else>Sign In</span>
+                                </button>
+                            </div>
 
-                        <div v-if="errorMessage" class="text-red-500 mt-4 text-center">{{ errorMessage }}</div>
-                    </form>
+                            <div v-if="errorMessage" class="text-red-500 mt-4 text-center">{{ errorMessage }}</div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </template>
+
 
 <style scoped>
 .pi-eye {
