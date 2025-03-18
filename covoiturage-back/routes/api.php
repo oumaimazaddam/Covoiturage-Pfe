@@ -14,6 +14,9 @@ Route::get('/test', function () {
 });
 Route::post('register', [JWTAuthController::class, 'register']);
 Route::post('login', [JWTAuthController::class, 'login']);
+Route::post('logout', [JWTAuthController::class, 'logout']);
+Route::post('refresh', [JWTAuthController::class, 'refresh']);
+
 //
 Route::get('trips', [TripController::class, 'index']); 
 Route::get('trips/{id}', [TripController::class, 'show']);
@@ -22,6 +25,7 @@ Route::get('trips/{id}', [TripController::class, 'show']);
 
 Route::middleware([JwtMiddleware::class])->group(function () {
     Route::get('user', [JWTAuthController::class, 'getUser']);
+    Route::post('refresh', [JWTAuthController::class, 'refresh']);
     Route::post('logout', [JWTAuthController::class, 'logout']);
     //
     

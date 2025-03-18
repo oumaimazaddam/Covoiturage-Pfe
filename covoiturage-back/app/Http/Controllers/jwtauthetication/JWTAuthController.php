@@ -65,6 +65,8 @@ class JWTAuthController extends Controller
             // Get the authenticated user.
             $user = Auth::user();
 
+            
+
             // (optional) Attach the role to the token.
             $access_token = JWTAuth::claims(['role_id' => $user->role_id])->fromUser($user);
             $access_token = JWTAuth::claims(['name' => $user->name])->fromUser($user);
@@ -114,4 +116,16 @@ class JWTAuthController extends Controller
 
         return response()->json(['message' => 'Successfully logged out']);
     }
+
+    public function refresh(Request $request)
+   {
+     try {
+        $token = JWTAuth::refresh(JWTAuth::getToken());
+      } catch (JWTException $e) {
+        return response()->json(['error' => 'could_not_refresh_token'], 500);
+     }
+
+     return response()->json(compact('token'));
+    }
+   
 }

@@ -9,7 +9,9 @@ export default {
             name: '',
             email: '',
             phone_number: '',
-            photo_profile: '',
+            photo_profile: 'null',
+            photoUrl: '', // URL de la photo enregistrée dans le backend
+
             password: '',
             password_confirmation: ''
         });
@@ -38,8 +40,16 @@ export default {
             }
         };
 
-        const handleFileUpload = (event) => {
+       const handleFileUpload = (event) => {
             const file = event.target.files[0];
+
+            // Vérification du type de fichier
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                alert('Veuillez sélectionner une image valide (jpg, jpeg, png).');
+                return;
+            }
+
             profile.value.photo_profile = file;
 
             const reader = new FileReader();
@@ -139,10 +149,11 @@ export default {
                 <input v-model="profile.phone_number" type="text" class="input-field" />
             </div>
 
-            <div>
-                <label class="block text-gray-700">Photo de profil</label>
-                <input type="file" @change="handleFileUpload" class="input-field" />
-                <img v-if="profilePreview" :src="profilePreview" alt="Aperçu" class="mt-2 h-16 w-16 rounded-full" />
+           <div>
+                <input type="file" @change="handleFileUpload" class="input-field mb-2" />
+                <div v-if="profilePreview" class="flex items-center">
+                    <img :src="profilePreview" alt="Aperçu de la photo" class="h-16 w-16 rounded-full" />
+                </div>
             </div>
 
             <div>
