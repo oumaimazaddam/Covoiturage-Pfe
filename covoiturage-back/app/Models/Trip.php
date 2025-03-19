@@ -11,6 +11,7 @@ class Trip extends Model
     protected $fillable = [
         'departure',
         'destination',
+        'trip_date',
         'departure_time',
         'estimate_arrival_time',
         'price',

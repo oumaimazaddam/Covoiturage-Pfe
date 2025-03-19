@@ -30,6 +30,7 @@ class TripController extends Controller
         $validator = Validator::make($request->all(), [
             'departure' => 'required|string',
             'destination' => 'required|string',
+            'trip_date' => 'required|date',
             'departure_time' => 'required|date_format:H:i',
             'estimate_arrival_time' => 'required|date_format:H:i',
             'price' => 'required|numeric',
@@ -39,6 +40,9 @@ class TripController extends Controller
         if($validator->fails()){
             return response()->json($validator->errors()->toJson(), 400);
         }
+        if (strtotime($request->trip_date) < strtotime(date('Y-m-d'))) {
+            return response()->json(['error' => 'La date du trajet ne peut pas être dans le passé'], 400);
+        }
        
           $driverId = $user->id;
 
@@ -47,6 +51,7 @@ class TripController extends Controller
            $trip = Trip::create([
             'departure' => $request->get('departure'),
             'destination' => $request->get('destination'),
+            'trip_date' => $request->get('trip_date'),
             'departure_time' =>$request->get('departure_time'),
             'estimate_arrival_time' =>$request->get('estimate_arrival_time'),
             'price' =>$request->get('price'),
@@ -70,6 +75,7 @@ class TripController extends Controller
         $validatedData = $request->validate([
             'departure' => 'nullable|string',
             'destination' => 'nullable|string',
+            'trip_date' => 'nullable|date',
             'departure_time' => 'nullable|date_format:H:i',
             'estimate_arrival_time' => 'nullable|date_format:H:i',
             'price' => 'nullable|numeric',
@@ -101,6 +107,10 @@ class TripController extends Controller
         if ($request->has('destination')) {
             $query->where('destination', 'like', '%' . $request->destination . '%');
         }
+        if ($request->has('trip_date')) {
+            $query->whereDate('trip_date', $request->trip_date);
+        }
+    
     
         if ($request->has('price')) {
             $query->where('price', '<=', $request->price);
