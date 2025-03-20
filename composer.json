@@ -1,0 +1,15 @@
+{
+    "name": "fatma/covoiturage-pfe",
+    "autoload": {
+        "psr-4": {
+            "Fatma\\CovoituragePfe\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Fatma Farhat",
+            "email": "farhatfatma318@gmail.com"
+        }
+    ],
+    "require": {}
+}

@@ -1,18 +1,35 @@
 import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import Home from '../views/SearchTrips.vue';
+import PublishTrip from '../views/PublishTrip.vue';
+import Login from '@/components/auth/Login.vue';
+import Register from '@/components/auth/Register.vue';
+import Details from '../views/Details.vue';
+import ConfirmationPage from '../views/ConfirmationPage.vue';
 
 const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
             path: '/',
+            component: Home,
+            name: 'home'
+        },
+        { path: '/login', name: 'Login', component: Login },
+        { path: '/register', name: 'Register', component: Register },
+        { path: '/ajouter-trajet', component: PublishTrip },
+        { path: '/details', component: Details },
+        { path: '/confirmation', component: ConfirmationPage },
+        {
+            path: '/dashboard',
             component: AppLayout,
             children: [
                 {
-                    path: '/',
+                    path: '',
                     name: 'dashboard',
                     component: () => import('@/views/Dashboard.vue')
                 },
+        
                 {
                     path: '/uikit/profile',
                     name: 'profile',
@@ -114,14 +131,15 @@ const router = createRouter({
         {
             path: '/logout',
             name: 'logout',
-            component: () => import('@/views/Logout.vue')
+            component: () => import('@/components/auth/Register.vue')
         },
 
         {
             path: '/login',
             name: 'login',
-            component: () => import('@/views/Login.vue')
-        }
+            component: () => import('@/components/auth/Login.vue')
+        },
+       
     ]
 });
 

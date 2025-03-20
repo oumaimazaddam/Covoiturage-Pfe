@@ -23,11 +23,22 @@ const submitLogin = async () => {
             password: password.value
         });
 
-        localStorage.setItem('access_token', response.data.access_token);
-        localStorage.setItem('user_id', response.data.user.id);
-        console.log('User ID enregistré:', response.data.user.id);
+        const token = response.data.access_token;
+        const user = response.data.user;
 
-        router.push('/'); // Utilisation correcte de router.push
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('user_id', user.id);
+        localStorage.setItem('user_role', user.role_id); // Stocker le rôle
+
+        console.log('User ID enregistré:', user.id);
+        console.log('Role ID enregistré:', user.role_id);
+
+        // Redirection selon le rôle
+        if (user.role_id === 2) {
+            router.push('/ajouter-trajet'); // Driver → Accueil
+        } else {
+            router.push('/'); // Passenger → Publier un trajet
+        }
     } catch (error) {
         errorMessage.value = error.response?.data?.message || 'Login failed. Please try again.';
     } finally {
@@ -35,6 +46,7 @@ const submitLogin = async () => {
     }
 };
 </script>
+
 
 <template>
     <div> 
