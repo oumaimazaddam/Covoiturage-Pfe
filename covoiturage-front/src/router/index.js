@@ -46,9 +46,9 @@ const router = createRouter({
                     component: () => import('@/views/uikit/ButtonDoc.vue')
                 },
                 {
-                    path: '/uikit/table',
-                    name: 'table',
-                    component: () => import('@/views/uikit/TableDoc.vue')
+                    path: '/uikit/utilisateur',
+                    name: 'utilisateur',
+                    component: () => import('@/views/uikit/GestionU.vue')
                 },
                 {
                     path: '/uikit/list',
@@ -56,14 +56,14 @@ const router = createRouter({
                     component: () => import('@/views/uikit/ListDoc.vue')
                 },
                 {
-                    path: '/uikit/tree',
-                    name: 'tree',
-                    component: () => import('@/views/uikit/TreeDoc.vue')
+                    path: '/uikit/list',
+                    name: 'list',
+                    component: () => import('@/views/uikit/ListU.vue')
                 },
                 {
-                    path: '/uikit/panel',
-                    name: 'panel',
-                    component: () => import('@/views/uikit/PanelsDoc.vue')
+                    path: '/uikit/trajet',
+                    name: 'trajet',
+                    component: () => import('@/views/uikit/TrajetG.vue')
                 },
 
                 {
@@ -77,9 +77,9 @@ const router = createRouter({
                     component: () => import('@/views/uikit/MediaDoc.vue')
                 },
                 {
-                    path: '/uikit/message',
-                    name: 'message',
-                    component: () => import('@/views/uikit/MessagesDoc.vue')
+                    path: '/messenger', 
+                    name: 'messenger',
+                    component: () => import('@/views/Messenger.vue')
                 },
                 {
                     path: '/uikit/file',
