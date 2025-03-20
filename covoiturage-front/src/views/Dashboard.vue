@@ -1,8 +1,9 @@
 <script setup>
-import BestSellingWidget from '@/components/dashboard/BestSellingWidget.vue';
-import NotificationsWidget from '@/components/dashboard/NotificationsWidget.vue';
-import RecentSalesWidget from '@/components/dashboard/RecentSalesWidget.vue';
-import RevenueStreamWidget from '@/components/dashboard/RevenueStreamWidget.vue';
+import AvisPassengersWidget from '@/components/dashboard/AvisPassengersWidget.vue';
+import ReservationWidget from '@/components/dashboard/ReservationWidget.vue';
+import RepartitionTrajetWidget from '@/components/dashboard/RepartitionTrajetWidget.vue';
+import TableTrajetWidget from '@/components/dashboard/TableTrajetWidget.vue';
+import RevenuePayementWidget from '@/components/dashboard/RevenuePayementWidget.vue';
 import StatsWidget from '@/components/dashboard/StatsWidget.vue';
 </script>
 
@@ -11,12 +12,22 @@ import StatsWidget from '@/components/dashboard/StatsWidget.vue';
         <StatsWidget />
 
         <div class="col-span-12 xl:col-span-6">
-            <RecentSalesWidget />
-            <BestSellingWidget />
+            <TableTrajetWidget />
+            <AvisPassengersWidget class="mb-6" />
+
+            <RepartitionTrajetWidget />
         </div>
+
         <div class="col-span-12 xl:col-span-6">
-            <RevenueStreamWidget />
-            <NotificationsWidget />
+            <RevenuePayementWidget />
+            <ReservationWidget />
         </div>
     </div>
 </template>
+
+<style scoped>
+/* Espace entre les composants avec margin */
+.mb-6 {
+  margin-bottom: 1.5rem; /* Tu peux ajuster la taille de l'espace */
+}
+</style>
