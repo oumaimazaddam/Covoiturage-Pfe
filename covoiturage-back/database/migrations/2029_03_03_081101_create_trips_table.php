@@ -12,19 +12,29 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('trips', function (Blueprint $table) {
-            $table->id();
-            $table->string('departure'); 
-            $table->string('destination'); 
+            $table->id();  // Colonne auto-incrémentée pour trip_id (clé primaire)
+            $table->string('departure');
+            $table->string('destination');
+            $table->date('trip_date');
             $table->time('departure_time');
             $table->time('estimate_arrival_time')->nullable();
             $table->decimal('price', 8, 2);
-            $table->unsignedBigInteger('driver_id');
-            $table->foreign('driver_id')->references('id')->on('users')->onDelete('cascade');
-            $table->decimal('rating', 2, 1)->nullable();
             $table->boolean('instant_booking')->default(false);
             $table->integer('available_seats')->default(1);
+            $table->timestamps();  // Création des champs created_at et updated_at
+        });
+
+        // Créer la table des relations entre passagers et trajets
+        Schema::create('trip_passenger', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('trip_id')->constrained('trips')->onDelete('cascade');  // Lier à la table trips
+            $table->foreignId('passenger_id')->constrained('users')->onDelete('cascade');  // Lier à la table users (passagers)
+            $table->foreignId('driver_id')->constrained('users')->onDelete('cascade');  // Lier à la table users (conducteurs)
             $table->timestamps();
         });
+      
+
+         
     }
 
     /**

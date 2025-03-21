@@ -29,6 +29,8 @@ class User extends Authenticatable implements JWTSubject
             'car_id',
             'drivingLicence',
             'password',
+            'is_active',
+            
     ];
 
     /**
@@ -70,10 +72,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Trip::class, 'driver_id');
     }
-    public function reservations()
-{
-    return $this->hasMany(Reservation::class,'user_id');
-}
+   
 
    
    

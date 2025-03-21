@@ -34,7 +34,7 @@ class TripController extends Controller
             'departure_time' => 'required|date_format:H:i',
             'estimate_arrival_time' => 'required|date_format:H:i',
             'price' => 'required|numeric',
-            'instant_booking' => 'nullable|boolean',
+            'instant_booking' => 'required|boolean',
             'available_seats' => 'nullable|integer|min:1',
         ]);
         if($validator->fails()){
@@ -80,7 +80,7 @@ class TripController extends Controller
             'estimate_arrival_time' => 'nullable|date_format:H:i',
             'price' => 'nullable|numeric',
             
-            'instant_booking' => 'nullable|boolean',
+           'instant_booking' => 'required|boolean',
             'available_seats' => 'nullable|integer|min:1',
         ]);
 
@@ -122,5 +122,38 @@ class TripController extends Controller
         // Retour des résultats
         return response()->json($trips);
     }
+    public function addPassenger($tripId, $passengerId)
+    {
+        $trip = Trip::find($tripId);
+        $user = User::find($passengerId);
+
+        if (!$trip || !$user) {
+            return response()->json(['message' => 'Trip or Passenger not found'], 404);
+        }
+
+        // Ajouter le passager au trajet
+        $trip->passengers()->attach($user->id);
+
+        return response()->json(['message' => 'Passenger added to trip'], 200);
+    }
+
+    // Récupérer le conducteur d'un trajet
+    public function getDriver($tripId)
+    {
+        $trip = Trip::find($tripId);
+
+        if (!$trip) {
+            return response()->json(['message' => 'Trip not found'], 404);
+        }
+
+        $driver = $trip->driver;  // Récupérer le conducteur du trajet
+
+        if (!$driver) {
+            return response()->json(['message' => 'Driver not found'], 404);
+        }
+
+        return response()->json($driver);
+    }
+    
     
 }

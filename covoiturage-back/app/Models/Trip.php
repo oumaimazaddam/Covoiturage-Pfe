@@ -15,17 +15,23 @@ class Trip extends Model
         'departure_time',
         'estimate_arrival_time',
         'price',
-        'driver_id',
-        'rating',
         'instant_booking',
         'available_seats',
     ];
 
 
-    public function users()
+    public function passengers()
     {
-        return $this->belongsToMany(User::class, 'driver_id');
+        return $this->belongsToMany(User::class, 'trip_passenger', 'trip_id', 'passenger_id')
+                    ->withTimestamps();
     }
+
+    // Relation avec le conducteur
+    public function driver()
+    {
+        return $this->belongsTo(User::class, 'driver_id');
+    }
+    
    
     
 }
