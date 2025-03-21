@@ -1,138 +1,268 @@
 <script setup>
-import { ref, onBeforeMount } from 'vue';
-import { FilterMatchMode } from '@primevue/core/api';
+import { ref } from 'vue';
+import axios from 'axios';
 
-// Données utilisateurs simulées
-const customers1 = ref([]);
-const loading1 = ref(true);
-
-const sampleUsers = [
-    { id: 1, name: 'John Doe', email: 'john.doe@gmail.com', role: 'passenger', birthday: '1990-05-15', status: 'active' },
-    { id: 2, name: 'Jane Smith', email: 'jane.smith@yahoo.com', role: 'driver', birthday: '1985-07-22', status: 'inactive' },
-    { id: 3, name: 'Mike Johnson', email: 'mike.johnson@gmail.com', role: 'passenger', birthday: '1993-02-10', status: 'active' },
-    { id: 4, name: 'John Doe', email: 'john.doe@gmail.com', role: 'passenger', birthday: '1990-05-15', status: 'active' },
-    { id: 5, name: 'Jane Smith', email: 'jane.smith@yahoo.com', role: 'driver', birthday: '1985-07-22', status: 'inactive' },
-    { id: 6, name: 'Mike Johnson', email: 'mike.johnson@gmail.com', role: 'passenger', birthday: '1993-02-10', status: 'active' },
-    { id: 7, name: 'John Doe', email: 'john.doe@gmail.com', role: 'passenger', birthday: '1990-05-15', status: 'active' },
-    { id: 8, name: 'Jane Smith', email: 'jane.smith@yahoo.com', role: 'driver', birthday: '1985-07-22', status: 'inactive' },
-    { id: 9, name: 'Mike Johnson', email: 'mike.johnson@gmail.com', role: 'passenger', birthday: '1993-02-10', status: 'active' },
-];
-
-// Vérification automatique de l'email
-const checkEmailVerification = (user) => {
-    user.verified = user.email.endsWith('@gmail.com');
-};
-
-// Charger les données et appliquer la vérification des emails
-onBeforeMount(() => {
-    customers1.value = sampleUsers.map(user => {
-        checkEmailVerification(user);
-        return user;
-    });
-    loading1.value = false;
+// Déclarations des variables
+const users = ref([]);
+const loading = ref(true);
+const showModal = ref(false);
+const formData = ref({
+  name: '',
+  email: '',
+  password: '',
+  password_confirmation: '',
+  phone_number: '',
+  birthday: '',
+  role_id: '',
+  car_id: '',
+  drivingLicence: ''
 });
-
-// Filtres de la table
-const filters1 = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    name: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    email: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    role: { value: null, matchMode: FilterMatchMode.EQUALS },
-    status: { value: null, matchMode: FilterMatchMode.EQUALS }
-});
-
-// Changer le statut (activer/désactiver)
-const toggleStatus = (user) => {
-    user.status = user.status === 'active' ? 'inactive' : 'active';
+const roleMapping = {
+  1: 'Admin',
+  2: 'Driver',
+  3: 'Passenger'
 };
+const userToEdit = ref(null);
 
-// Formatage de la date
-const formatDate = (value) => {
-    return new Date(value).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
+// Fonction pour récupérer les utilisateurs
+const fetchUsers = async () => {
+  const token = localStorage.getItem('access_token');
+  
+  if (!token) {
+    console.error('Token non trouvé');
+    return;
+  }
+
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/users', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
     });
+
+    users.value = response.data;
+    loading.value = false;
+    
+  } catch (error) {
+    console.error('Erreur API:', error.response ? error.response.data : error);
+    loading.value = false;
+    
+  }
 };
+
+// Ouvrir le modal pour l'ajout ou la modification
+const openModal = (user = null) => {
+  if (user) {
+    userToEdit.value = user;
+    formData.value = { ...user };
+  } else {
+    userToEdit.value = null;
+    formData.value = {
+      name: '',
+      email: '',
+      phone_number: '',
+      birthday: '',
+      role_id: '',
+      car_id: '',
+      drivingLicence: ''
+    };
+  }
+  showModal.value = true;
+};
+
+// Soumettre le formulaire
+const handleSubmit = () => {
+  if (userToEdit.value) {
+    updateUser(userToEdit.value.id);
+  } else {
+    if (formData.value.password !== formData.value.password_confirmation) {
+      alert("Les mots de passe ne correspondent pas.");
+      return;
+    }
+    
+    createUser();
+  }
+};
+
+// Créer un utilisateur
+const createUser = async () => {
+  const token = localStorage.getItem('access_token');
+  
+  if (!token) {
+    console.error('Token non trouvé');
+    return;
+  }
+
+  try {
+    const response = await axios.post('http://127.0.0.1:8000/api/register', formData.value, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    users.value.push(response.data.user);
+    showModal.value = false;
+    resetForm();
+  } catch (error) {
+    console.error('Erreur de création:', error.response ? error.response.data : error);
+  }
+};
+
+// Mettre à jour un utilisateur
+const updateUser = async (id) => {
+  const token = localStorage.getItem('access_token');
+  
+  if (!token) {
+    console.error('Token non trouvé');
+    return;
+  }
+
+  try {
+    const response = await axios.put(`http://127.0.0.1:8000/api/user/${id}`, formData.value, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const index = users.value.findIndex(user => user.id === id);
+    if (index !== -1) {
+      users.value[index] = response.data.user;
+    }
+
+    showModal.value = false;
+    resetForm();
+  } catch (error) {
+    console.error('Erreur de mise à jour:', error.response ? error.response.data : error);
+  }
+};
+
+// Supprimer un utilisateur
+const deleteUser = async (id) => {
+  const token = localStorage.getItem('access_token');
+  
+  if (!token) {
+    console.error('Token non trouvé');
+    return;
+  }
+
+  try {
+    await axios.delete(`http://127.0.0.1:8000/api/user/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    users.value = users.value.filter(user => user.id !== id);
+  } catch (error) {
+    console.error('Erreur de suppression:', error.response ? error.response.data : error);
+  }
+};
+
+// Réinitialiser le formulaire
+const resetForm = () => {
+  formData.value = {
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    phone_number: '',
+    birthday: '',
+    role_id: '',
+    car_id: '',
+    drivingLicence: ''
+  };
+};
+
+// Appeler la fonction pour récupérer les utilisateurs lors du montage
+fetchUsers();
 </script>
 
 <template>
-    <div class="card">
-        <h2 class="font-semibold text-xl mb-4">Gestion des Utilisateurs</h2>
+  <div class="container mx-auto p-4">
+    <h2 class="text-2xl font-semibold mb-4">Liste des utilisateurs</h2>
 
-        <!-- Barre de recherche -->
-        <div class="flex justify-between mb-3">
-            <Button type="button" icon="pi pi-filter-slash" label="Réinitialiser" outlined @click="filters1.global.value = null" />
-            <span class="p-input-icon-left">
-                <i class="pi pi-search" />
-                <InputText v-model="filters1.global.value" placeholder="Rechercher un utilisateur..." />
-            </span>
-        </div>
-
-        <!-- Tableau des utilisateurs -->
-        <DataTable 
-            :value="customers1"
-            :paginator="true"
-            :rows="5"
-            dataKey="id"
-            filterDisplay="menu"
-            :filters="filters1"
-            :globalFilterFields="['name', 'email', 'role', 'status']"
-            :loading="loading1"
-            showGridlines
-        >
-            <template #empty>Aucun utilisateur trouvé.</template>
-            <template #loading>Chargement des utilisateurs...</template>
-
-            <Column field="name" header="Nom" sortable>
-                <template #body="{ data }">{{ data.name }}</template>
-            </Column>
-
-            <Column field="email" header="Email" sortable>
-                <template #body="{ data }">{{ data.email }}</template>
-            </Column>
-
-            <Column field="role" header="Rôle" sortable>
-                <template #body="{ data }">
-                    <Tag :value="data.role" :severity="data.role === 'driver' ? 'warning' : 'info'" />
-                </template>
-            </Column>
-
-            <Column field="birthday" header="Date de naissance">
-                <template #body="{ data }">{{ formatDate(data.birthday) }}</template>
-            </Column>
-
-            <Column field="status" header="Statut">
-                <template #body="{ data }">
-                    <Tag :value="data.status" :severity="data.status === 'active' ? 'success' : 'danger'" />
-                </template>
-            </Column>
-
-            <Column field="verified" header="Vérifié">
-                <template #body="{ data }">
-                    <i class="pi" :class="{ 'pi-check-circle text-green-500': data.verified, 'pi-times-circle text-red-500': !data.verified }"></i>
-                </template>
-            </Column>
-
-            <Column header="Actions">
-                <template #body="{ data }">
-                    <Button 
-                        :label="data.status === 'active' ? 'Désactiver' : 'Activer'"
-                        :severity="data.status === 'active' ? 'danger' : 'success'"
-                        @click="toggleStatus(data)"
-                    />
-                </template>
-            </Column>
-        </DataTable>
+    <div class="mb-4">
+      <button 
+        @click="openModal()" 
+        class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700"
+      >
+        Ajouter un compte
+      </button>
     </div>
+
+    <div v-if="loading" class="text-center text-gray-500">Chargement...</div>
+
+    <table v-else class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
+      <thead>
+        <tr class="bg-gray-100 text-gray-600">
+          <th class="py-3 px-6 text-left">Nom</th>
+          <th class="py-3 px-6 text-left">Email</th>
+          <th class="py-3 px-6 text-left">Téléphone</th>
+          <th class="py-3 px-6 text-left">Date de naissance</th>
+          <th class="py-3 px-6 text-left">Rôle</th>
+          <th class="py-3 px-6 text-left">Matricule de véhicule</th>
+          <th class="py-3 px-6 text-left">Permis</th>
+          <th class="py-3 px-6 text-left">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="user in users" :key="user.id" class="border-t hover:bg-gray-50">
+          <td class="py-3 px-6">{{ user.name }}</td>
+          <td class="py-3 px-6">{{ user.email }}</td>
+          <td class="py-3 px-6">{{ user.phone_number }}</td>
+          <td class="py-3 px-6">{{ user.birthday }}</td>
+         <td class="py-3 px-6">{{ roleMapping[user.role_id] || 'Inconnu' }}</td>
+
+          <td class="py-3 px-6">{{ user.car_id }}</td>
+          <td class="py-3 px-6">{{ user.drivingLicence }}</td>
+          <td class="py-3 px-6">
+             <div class="flex space-x-2">
+            <button 
+              @click="openModal(user)" 
+              class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
+            >
+              Modifier
+            </button>
+            <button 
+              @click="deleteUser(user.id)" 
+              class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-700"
+            >
+              Supprimer
+            </button>
+             </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Modal d'édition/création -->
+    <div v-if="showModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+      <div class="bg-white p-6 rounded shadow-lg w-1/3">
+        <h3 class="text-xl mb-4">{{ userToEdit ? 'Modifier l\'utilisateur' : 'Créer un utilisateur' }}</h3>
+        <form @submit.prevent="handleSubmit">
+          <input v-model="formData.name" type="text" placeholder="Nom" class="mb-4 p-2 w-full border rounded" required />
+          <input v-model="formData.email" type="email" placeholder="Email" class="mb-4 p-2 w-full border rounded" required />
+          <input v-model="formData.password" type="password" placeholder="Mot de passe" class="mb-4 p-2 w-full border rounded" required v-if="!userToEdit" />
+          <input v-model="formData.password_confirmation" type="password" placeholder="Confirmer le mot de passe" class="mb-4 p-2 w-full border rounded" required v-if="!userToEdit" />
+          <input v-model="formData.phone_number" type="text" placeholder="Téléphone" class="mb-4 p-2 w-full border rounded" required />
+          <input v-model="formData.birthday" type="date" placeholder="Date de naissance" class="mb-4 p-2 w-full border rounded" required />
+          <input v-model="formData.role_id" type="number" placeholder="Rôle" class="mb-4 p-2 w-full border rounded" required />
+          <input v-model="formData.car_id" type="text" placeholder="Matricule du véhicule" class="mb-4 p-2 w-full border rounded" />
+          <input v-model="formData.drivingLicence" type="text" placeholder="Permis" class="mb-4 p-2 w-full border rounded" />
+
+          <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700">
+            {{ userToEdit ? 'Mettre à jour' : 'Créer' }}
+          </button>
+        </form>
+        <button @click="showModal = false" class="mt-4 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-700">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
-<style scoped lang="scss">
-:deep(.p-datatable-frozen-tbody) {
-    font-weight: bold;
-}
 
-:deep(.p-datatable-scrollable .p-frozen-column) {
-    font-weight: bold;
-}
+
+<style scoped>
 </style>

@@ -2,4 +2,8 @@
 <script setup></script>
 
 // eslint-disable-next-line vue/valid-template-root
-<template></template>
+<template>
+<div>
+    
+</div>
+</template>

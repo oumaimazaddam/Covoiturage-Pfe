@@ -1,158 +1,135 @@
 <script setup>
-import { ref } from 'vue';
-import { FilterMatchMode } from '@primevue/core/api';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
 
-// Données des trajets simulées
 const trips = ref([]);
+const reservedTrips = ref([]);
 const loadingTrips = ref(true);
+const loadingReservedTrips = ref(true);
 
-const sampleTrips = [
-    { trip_id: 1, departure_point: 'Paris, France', arrival_point: 'Lyon, France', departure_time: '2025-03-19T08:00:00', arrival_time_estimated: '2025-03-19T12:00:00', status: 'En cours', cost: 100.5, rating: 4.5},
-    { trip_id: 2, departure_point: 'Marseille, France', arrival_point: 'Nice, France', departure_time: '2025-03-19T09:00:00', arrival_time_estimated: '2025-03-19T11:30:00', status: 'Terminé', cost: 50, rating: 4.0 },
-    { trip_id: 3, departure_point: 'Lille, France', arrival_point: 'Paris, France', departure_time: '2025-03-18T15:00:00', arrival_time_estimated: '2025-03-18T17:30:00', status: 'Annulé', cost: 0, rating: null},
-    { trip_id: 1, departure_point: 'Paris, France', arrival_point: 'Lyon, France', departure_time: '2025-03-19T08:00:00', arrival_time_estimated: '2025-03-19T12:00:00', status: 'En cours', cost: 100.5, rating: 4.5},
-    { trip_id: 2, departure_point: 'Marseille, France', arrival_point: 'Nice, France', departure_time: '2025-03-19T09:00:00', arrival_time_estimated: '2025-03-19T11:30:00', status: 'Terminé', cost: 50, rating: 4.0 },
-    { trip_id: 3, departure_point: 'Lille, France', arrival_point: 'Paris, France', departure_time: '2025-03-18T15:00:00', arrival_time_estimated: '2025-03-18T17:30:00', status: 'Annulé', cost: 0, rating: null}
-];
+// Charger tous les trajets
+const fetchTrips = async () => {
+    try {
+        const token = localStorage.getItem("access_token");
+        console.log("Token JWT récupéré :", token); // Vérification
 
-// Données des réservations simulées
-const reservations = ref([]);
-const loadingReservations = ref(true);
+        if (!token) {
+            throw new Error("Aucun token trouvé. Veuillez vous reconnecter.");
+        }
 
-const sampleReservations = [
-    { reservation_id: 1, user: 'John Doe (Passager)', departure_point: 'Paris, France', arrival_point: 'Lyon, France', desired_departure_time: '2025-03-20T09:00:00', num_passengers: 1, status: 'Confirmée', cost: 100.5 },
-    { reservation_id: 2, user: 'Jane Smith (Conducteur)', departure_point: 'Marseille, France', arrival_point: 'Nice, France', desired_departure_time: '2025-03-21T14:00:00', num_passengers: 2, status: 'En attente', cost: 50 },
-    { reservation_id: 3, user: 'Mike Johnson (Passager)', departure_point: 'Lille, France', arrival_point: 'Paris, France', desired_departure_time: '2025-03-22T18:00:00', num_passengers: 1, status: 'Annulée', cost: 0 },
-    { reservation_id: 1, user: 'John Doe (Passager)', departure_point: 'Paris, France', arrival_point: 'Lyon, France', desired_departure_time: '2025-03-20T09:00:00', num_passengers: 1, status: 'Confirmée', cost: 100.5 },
-    { reservation_id: 2, user: 'Jane Smith (Conducteur)', departure_point: 'Marseille, France', arrival_point: 'Nice, France', desired_departure_time: '2025-03-21T14:00:00', num_passengers: 2, status: 'En attente', cost: 50 },
-    { reservation_id: 3, user: 'Mike Johnson (Passager)', departure_point: 'Lille, France', arrival_point: 'Paris, France', desired_departure_time: '2025-03-22T18:00:00', num_passengers: 1, status: 'Annulée', cost: 0 }
-];
+        const response = await axios.get("http://localhost:8000/api/trips", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
 
-// Initialisation de la variable `newReservation` avec des valeurs par défaut
-
-
-// Filtres pour les tables
-const filtersTrips = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    status: { value: null, matchMode: FilterMatchMode.EQUALS }
-});
-
-const filtersReservations = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    user: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-    status: { value: null, matchMode: FilterMatchMode.EQUALS }
-});
-
-trips.value = sampleTrips;
-reservations.value = sampleReservations;
-
-loadingTrips.value = false;
-loadingReservations.value = false;
-
-// Formatage de la date
-const formatDate = (value) => {
-    return new Date(value).toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+        console.log("Données reçues :", response.data);
+        trips.value = response.data;
+    } catch (error) {
+        console.error("Erreur lors du chargement des trajets", error);
+    } finally {
+        loadingTrips.value = false;
+    }
 };
 
-// Fonction pour gérer la réservation
 
 
-   
+// Charger uniquement les trajets réservés
+const fetchReservedTrips = async () => {
+    try {
+        const response = await axios.get('http://localhost:8000/api/reservations', {
+            headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` }
+        });
+        reservedTrips.value = response.data;
+    } catch (error) {
+        console.error("Erreur lors du chargement des trajets réservés", error);
+    } finally {
+        loadingReservedTrips.value = false;
+    }
+};
+
+// Charger les données au montage du composant
+onMounted(() => {
+    fetchTrips();
+    fetchReservedTrips();
+});
+
+
+// Fonction pour formater les dates
+const formatTime = (value) => {
+    if (!value) return "Aucune heure";
+
+    // Si la valeur est déjà au format HH:mm, on l'affiche directement
+    if (/^\d{2}:\d{2}$/.test(value)) {
+        return value;
+    }
+
+    try {
+        // Ajouter une date fictive pour éviter "Invalid Date"
+        const fullDateTime = `1970-01-01T${value}`;
+        return new Date(fullDateTime).toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (error) {
+        return "Heure invalide";
+    }
+};
+
+
+
 </script>
 
 <template>
     <div class="card">
-        <h2 class="font-semibold text-xl mb-4">Tableau de Bord des Trajets</h2>
+        <h2 class="font-semibold text-xl mb-4">Tous les Trajets</h2>
 
-        <!-- Tableau des trajets -->
-        <DataTable 
-            :value="trips"
-            :paginator="true"
-            :rows="5"
-            dataKey="trip_id"
-            filterDisplay="menu"
-            :filters="filtersTrips"
-            :globalFilterFields="['departure_point', 'arrival_point', 'status']"
-            :loading="loadingTrips"
-            showGridlines
-        >
-            <template #empty>Aucun trajet trouvé.</template>
-            <template #loading>Chargement des trajets...</template>
+        <DataTable :value="trips" :loading="loadingTrips" paginator :rows="5">
+           
+            <Column field="departure" header="Point de départ" sortable></Column>
+            <Column field="destination" header="Point d'arrivée" sortable></Column>
+             <Column field="trip_date" header="date de trip" sortable></Column>
+            <Column field="departure_time" header="Date et heure de départ">
+                <template #body="{ data }">{{ formatTime(data.departure_time) }}</template>
+            </Column>
+            <Column field="estimate_arrival_time" header="Arrivée prévue">
+                <template #body="{ data }">{{ formatTime(data.estimate_arrival_time) }}</template>
+            </Column>
+             <Column field="price" header="Prix" sortable></Column>
+            <Column field="driver_id" header="conducteur_name" sortable></Column>
+            <Column field="available_seats" header="Place Disponible" sortable></Column>
+             <Column field="instant_booking" header="Réservation_instantanee" sortable>
+             <template #body="slotProps">
+             {{ slotProps.data.instant_booking === 0 ? 'Réservation en attente' : 'Réservation confirmée' }}
+             </template>
+            </Column>
 
-            <Column field="trip_id" header="ID" sortable></Column>
-            <Column field="departure_point" header="Point de départ" sortable></Column>
-            <Column field="arrival_point" header="Point d'arrivée" sortable></Column>
-            <Column field="departure_time" header="Date et heure du départ">
-                <template #body="{ data }">{{ formatDate(data.departure_time) }}</template>
+
+
+        </DataTable>
+           <div class="card">
+          <h2 class="font-semibold text-xl mb-4">Les Trajets Reservee</h2>
+         <DataTable :value="reservedTrips" :loading="loadingReservedTrips" paginator :rows="5">
+            <Column field="user_id" header="ID Utilisateur" sortable></Column>
+            <Column field="date_trajet" header="Date du Trajet" sortable>
+                <template #body="{ data }">{{ formatDate(data.date_trajet) }}</template>
             </Column>
-            <Column field="arrival_time_estimated" header="Date et heure d'arrivée prévue">
-                <template #body="{ data }">{{ formatDate(data.arrival_time_estimated) }}</template>
+            <Column field="heure_depart" header="Heure de départ">
+                <template #body="{ data }">{{ formatTime(data.heure_depart) }}</template>
             </Column>
+            <Column field="ville_depart" header="Ville de départ" sortable></Column>
+            <Column field="heure_arrivee" header="Heure d'arrivée">
+                <template #body="{ data }">{{ formatTime(data.heure_arrivee) }}</template>
+            </Column>
+            <Column field="ville_arrivee" header="Ville d'arrivée" sortable></Column>
+            <Column field="prix_total" header="Prix Total" sortable></Column>
+            <Column field="nombre_passagers" header="Nombre de Passagers" sortable></Column>
+
             <Column field="status" header="Statut" sortable>
                 <template #body="{ data }">
                     <Tag :value="data.status" :severity="data.status === 'En cours' ? 'warning' : (data.status === 'Terminé' ? 'success' : 'danger')" />
                 </template>
             </Column>
-            <Column field="cost" header="Coût du trajet" sortable></Column>
-            <Column field="rating" header="Évaluation">
-                <template #body="{ data }">
-                    <i v-if="data.rating" class="pi pi-star" :class="{ 'text-yellow-500': data.rating >= 4 }"></i>
-                    <span v-if="data.rating">{{ data.rating }}</span>
-                    <span v-else>Aucune évaluation</span>
-                </template>
-            </Column>
         </DataTable>
-
-        <h2 class="font-semibold text-xl mb-4 mt-6">Planification et Réservation de Trajets</h2>
-
-        <!-- Formulaire de réservation -->
-       
-
-        <!-- Tableau des réservations -->
-        <DataTable 
-            :value="reservations"
-            :paginator="true"
-            :rows="5"
-            dataKey="reservation_id"
-            filterDisplay="menu"
-            :filters="filtersReservations"
-            :globalFilterFields="['user', 'departure_point', 'arrival_point', 'status']"
-            :loading="loadingReservations"
-            showGridlines
-        >
-            <template #empty>Aucune réservation trouvée.</template>
-            <template #loading>Chargement des réservations...</template>
-
-            <Column field="reservation_id" header="ID" sortable></Column>
-            <Column field="user" header="Utilisateur" sortable></Column>
-            <Column field="departure_point" header="Point de départ" sortable></Column>
-            <Column field="arrival_point" header="Point d'arrivée" sortable></Column>
-            <Column field="desired_departure_time" header="Date et heure souhaitées">
-                <template #body="{ data }">{{ formatDate(data.desired_departure_time) }}</template>
-            </Column>
-            <Column field="num_passengers" header="Nombre de passagers" sortable></Column>
-            <Column field="status" header="Statut" sortable>
-                <template #body="{ data }">
-                    <Tag :value="data.status" :severity="data.status === 'Confirmée' ? 'success' : (data.status === 'En attente' ? 'warning' : 'danger')" />
-                </template>
-            </Column>
-            <Column field="cost" header="Coût" sortable></Column>
-        </DataTable>
+        
     </div>
+     </div>
 </template>
-
-<style scoped>
-:deep(.p-datatable-frozen-tbody) {
-    font-weight: bold;
-}
-
-:deep(.p-datatable-scrollable .p-frozen-column) {
-    font-weight: bold;
-}
-</style>

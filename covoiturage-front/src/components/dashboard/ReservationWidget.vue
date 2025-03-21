@@ -1,7 +1,10 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
 import { onMounted, ref, watch } from 'vue';
-import { Chart } from 'vue-chartjs'; // Assurez-vous d'importer le composant Chart
+import { Chart as ChartJS, LinearScale, CategoryScale, BarElement } from 'chart.js';
+
+ChartJS.register(LinearScale, CategoryScale, BarElement);
+
 
 const { getPrimary, getSurface, isDarkTheme } = useLayout();
 const lineData = ref(null);
