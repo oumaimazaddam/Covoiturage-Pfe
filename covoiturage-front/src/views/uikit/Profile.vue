@@ -9,9 +9,10 @@ export default {
             name: '',
             email: '',
             phone_number: '',
-            photo_profile: 'null',
-            photoUrl: '', // URL de la photo enregistrée dans le backend
-
+            photo_profile: null,
+            photoUrl: '',
+            car_id: '',
+            drivingLicence: '',
             password: '',
             password_confirmation: ''
         });
@@ -21,8 +22,11 @@ export default {
         const router = useRouter();
         const userId = localStorage.getItem('user_id');
         const accessToken = localStorage.getItem('access_token');
+        const roleId = ref(localStorage.getItem('user_role')); // Récupération du rôle utilisateur
+
         console.log('User ID:', userId);
         console.log('Access Token:', accessToken);
+        console.log('Role ID:', roleId.value);
 
         const fetchProfile = async () => {
             if (!accessToken || !userId) {
@@ -35,15 +39,16 @@ export default {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 profile.value = response.data.user;
+                roleId.value = response.data.user.role_id; // Met à jour le rôle
+                localStorage.setItem('user_role', response.data.user.role_id);
             } catch (error) {
                 console.error('Erreur chargement profil :', error.response?.data || error.message);
             }
         };
 
-       const handleFileUpload = (event) => {
+        const handleFileUpload = (event) => {
             const file = event.target.files[0];
 
-            // Vérification du type de fichier
             const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
             if (!validTypes.includes(file.type)) {
                 alert('Veuillez sélectionner une image valide (jpg, jpeg, png).');
@@ -66,21 +71,21 @@ export default {
             }
 
             const formData = new FormData();
-            formData.append('_method', 'PUT'); // 🔥 Ajout de _method pour simuler un PUT
-
+            formData.append('_method', 'PUT');
             formData.append('id', userId);
             formData.append('name', profile.value.name);
             formData.append('email', profile.value.email);
             formData.append('phone_number', profile.value.phone_number);
-
+            if (roleId.value == 2) {
+                formData.append('car_id', profile.value.car_id);
+                formData.append('drivingLicence', profile.value.drivingLicence);
+            }
             formData.append('password', profile.value.password);
             formData.append('password_confirmation', profile.value.password_confirmation);
 
             if (profile.value.photo_profile) {
                 formData.append('photo_profile', profile.value.photo_profile);
             }
-
-            console.log('FormData entries:', [...formData.entries()]);
 
             try {
                 const response = await axios.post(`http://localhost:8000/api/update-profile/${userId}`, formData, {
@@ -89,16 +94,10 @@ export default {
                     }
                 });
 
-                console.log('Réponse API :', response.data);
-
-                // Mise à jour des données du profil dans le frontend
                 profile.value = { ...profile.value, ...response.data.user };
-
-                // Message de succès
                 successMessage.value = response.data.message;
                 alert(response.data.message);
             } catch (error) {
-                // Gestion des erreurs
                 console.error('Erreur mise à jour :', error.response?.data || error.message);
                 alert('Une erreur est survenue lors de la mise à jour du profil.');
             }
@@ -112,7 +111,7 @@ export default {
                     headers: { Authorization: `Bearer ${accessToken}` }
                 });
                 alert('Profil supprimé !');
-                localStorage.removeItem('access_token');
+                localStorage.clear();
                 router.push('/login');
             } catch (error) {
                 console.error('Erreur suppression du profil :', error.response?.data || error.message);
@@ -121,14 +120,15 @@ export default {
 
         onMounted(fetchProfile);
 
-        return { profile, profilePreview, updateProfile, deleteProfile, handleFileUpload, successMessage };
+        return { profile, profilePreview, updateProfile, deleteProfile, handleFileUpload, successMessage, roleId };
     }
 };
 </script>
+
 <template>
     <div class="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md">
         <h2 class="text-2xl font-bold mb-4">Modifier le Profil</h2>
-        <!-- Message de succès -->
+
         <div v-if="successMessage" class="mb-4 p-2 bg-green-100 text-green-800 rounded">
             {{ successMessage }}
         </div>
@@ -146,10 +146,22 @@ export default {
 
             <div>
                 <label class="block text-gray-700">Téléphone</label>
-                <input v-model="profile.phone_number" type="text" class="input-field" />
+                <input v-model="profile.phone_number" type="number" class="input-field" maxlength="8"
+                    @input="profile.phone_number = profile.phone_number.toString().slice(0, 8)" />
             </div>
 
-           <div>
+            <!-- Afficher ces champs uniquement si roleId == 2 -->
+            <div v-if="roleId == 2">
+                <label class="block text-gray-700">Matricule</label>
+                <input v-model="profile.car_id" type="text" class="input-field" />
+            </div>
+
+            <div v-if="roleId == 2">
+                <label class="block text-gray-700">Permis</label>
+                <input v-model="profile.drivingLicence" type="text" class="input-field" />
+            </div>
+
+            <div>
                 <input type="file" @change="handleFileUpload" class="input-field mb-2" />
                 <div v-if="profilePreview" class="flex items-center">
                     <img :src="profilePreview" alt="Aperçu de la photo" class="h-16 w-16 rounded-full" />
