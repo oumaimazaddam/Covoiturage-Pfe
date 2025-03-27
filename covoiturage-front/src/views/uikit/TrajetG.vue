@@ -20,7 +20,7 @@ const fetchUserRole = async () => {
             throw new Error("Aucun token trouvé. Veuillez vous reconnecter.");
         }
 
-        const response = await axios.get("http://localhost:8000/api/admin/users", {
+        const response = await axios.get("http://localhost:8000/api/admins/users", {
             headers: { Authorization: `Bearer ${token}` }
         });
              console.log("Réponse API :", response.data); // Vérifier les données reçues

@@ -6,7 +6,7 @@ const model = ref([
     {
         label: 'Carpool',
         items: [
-            { label: 'Dashboard Admin', icon: 'pi pi-home', to: '/' },
+            { label: 'Dashboard Admin', icon: 'pi pi-home', to: '/dashboard' },
             { label: 'Gestion des droits des utilisateurs', icon: 'pi pi-user', to: '/uikit/utilisateur' },
             { label: 'Utilisateurs En attent', icon: 'pi pi-users', to: '/uikit/list' },
             { label: 'Gestion de Trajet', icon: 'pi pi-map', to: '/uikit/trajet', class: 'rotated-icon' },

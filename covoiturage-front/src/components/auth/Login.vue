@@ -35,9 +35,13 @@ const submitLogin = async () => {
 
         // Redirection selon le rôle
         if (user.role_id === 2) {
-            router.push('/ajouter-trajet'); // Driver → Accueil
+            router.push('/ajouter-trajet'); // Driver → Publier un trajet
+        } else if (user.role_id === 1) {
+            router.push('/dashboard'); // Admin → Dashboard
+        } else if (user.role_id === 3) {
+            router.push('/'); // Passenger → Accueil
         } else {
-            router.push('/'); // Passenger → Publier un trajet
+            router.push('/'); // Par défaut, rediriger vers l'accueil
         }
     } catch (error) {
         errorMessage.value = error.response?.data?.message || 'Login failed. Please try again.';
