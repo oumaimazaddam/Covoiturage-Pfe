@@ -259,6 +259,26 @@ public function activateUser($id)
          return response()->json(['error' => 'Erreur interne'], 500);
      }
  }
+ public function getAdmin()
+{
+    try {
+        if (! $user = JWTAuth::parseToken()->authenticate()) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role_id' => $user->role_id // Vérifie que ceci est bien inclus
+            ]
+        ], 200);
+    } catch (JWTException $e) {
+        return response()->json(['error' => 'Invalid token'], 400);
+    }
+}
+
 
 
 
