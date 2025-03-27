@@ -8,7 +8,7 @@ const model = ref([
         items: [
             { label: 'Dashboard Admin', icon: 'pi pi-home', to: '/' },
             { label: 'Gestion des droits des utilisateurs', icon: 'pi pi-user', to: '/uikit/utilisateur' },
-            { label: 'Liste des Utilisateurs', icon: 'pi pi-users', to: '/uikit/list' },
+            { label: 'Utilisateurs En attent', icon: 'pi pi-users', to: '/uikit/list' },
             { label: 'Gestion de Trajet', icon: 'pi pi-map', to: '/uikit/trajet', class: 'rotated-icon' },
             { label: 'Feedbacks', icon: 'pi pi-comments', to: '/uikit/feedbacks' },
             { label: 'Financement', icon: 'pi pi-wallet', to: '/uikit/financement' }

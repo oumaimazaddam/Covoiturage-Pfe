@@ -1,11 +1,15 @@
 <script setup>
 import { ref } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 // Déclarations des variables
 const users = ref([]);
 const loading = ref(true);
 const showModal = ref(false);
+const currentUser = ref(null); // Utilisateur connecté
+const router = useRouter();
+
 const formData = ref({
   name: '',
   email: '',
@@ -23,6 +27,37 @@ const roleMapping = {
   3: 'Passenger'
 };
 const userToEdit = ref(null);
+
+const fetchCurrentUser = async () => {
+  const token = localStorage.getItem('access_token');
+
+  if (!token) {
+    console.error('Token non trouvé');
+    router.push('/login'); // Redirige si pas connecté
+    return;
+  }
+
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/user-profile', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    currentUser.value = response.data;
+        console.log("Utilisateur connecté:", currentUser.value);
+
+
+    // Vérification du rôle : Si ce n'est pas un admin, redirection
+    if (currentUser.value.role_id !== 1) {
+      alert("Accès refusé : Vous n'avez pas les permissions nécessaires.");
+      router.push('/'); // Rediriger vers la page d'accueil ou une autre page
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération du profil utilisateur:', error);
+    router.push('/login'); // Redirection en cas d'échec
+  }
+};
 
 // Fonction pour récupérer les utilisateurs
 const fetchUsers = async () => {
@@ -175,10 +210,11 @@ const resetForm = () => {
 
 // Appeler la fonction pour récupérer les utilisateurs lors du montage
 fetchUsers();
+fetchCurrentUser();
 </script>
 
 <template>
-  <div class="container mx-auto p-4">
+   <div v-if="currentUser && currentUser.role_id === 1" class="container mx-auto p-4">
     <h2 class="text-2xl font-semibold mb-4">Liste des utilisateurs</h2>
 
     <div class="mb-4">
@@ -259,6 +295,10 @@ fetchUsers();
         </button>
       </div>
     </div>
+  </div>
+   <!-- Message d'accès refusé -->
+  <div v-else class="text-center text-red-500 font-semibold text-xl p-10">
+    Accès refusé 🚫
   </div>
 </template>
 

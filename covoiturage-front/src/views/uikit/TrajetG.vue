@@ -1,12 +1,44 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
+const router = useRouter();
 
 const trips = ref([]);
 const reservedTrips = ref([]);
 const loadingTrips = ref(true);
 const loadingReservedTrips = ref(true);
+const userRole = ref(null); // Stocke le rôle de l'utilisateur
+const isAdmin = ref(false); // Vérifier si c'est un admin
 
+// Fonction pour récupérer le rôle de l'utilisateur
+const fetchUserRole = async () => {
+    try {
+        const token = localStorage.getItem("access_token");
+
+        if (!token) {
+            throw new Error("Aucun token trouvé. Veuillez vous reconnecter.");
+        }
+
+        const response = await axios.get("http://localhost:8000/api/admin/users", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+             console.log("Réponse API :", response.data); // Vérifier les données reçues
+
+
+        userRole.value = response.data.user.role_id;
+        isAdmin.value = userRole.value === 1; // Vérifie si l'utilisateur est un admin
+
+        if (!isAdmin.value) {
+             alert("Accès refusé : Vous n'avez pas les permissions nécessaires.");
+            router.push("/"); // Rediriger vers la page d'accueil si l'utilisateur n'est pas admin
+        }
+
+    } catch (error) {
+        console.error("Erreur lors de la récupération du rôle", error);
+        router.push("/"); // Rediriger en cas d'erreur
+    }
+};
 // Charger tous les trajets
 const fetchTrips = async () => {
     try {
@@ -47,9 +79,12 @@ const fetchReservedTrips = async () => {
 };
 
 // Charger les données au montage du composant
-onMounted(() => {
-    fetchTrips();
-    fetchReservedTrips();
+onMounted(async () => {
+    await fetchUserRole(); // Vérifie d'abord le rôle
+    if (isAdmin.value) {
+        fetchTrips();
+        fetchReservedTrips();
+    }
 });
 
 
@@ -98,7 +133,7 @@ const formatTime = (value) => {
             <Column field="available_seats" header="Place Disponible" sortable></Column>
              <Column field="instant_booking" header="Réservation_instantanee" sortable>
              <template #body="slotProps">
-             {{ slotProps.data.instant_booking === 0 ? 'Réservation en attente' : 'Réservation confirmée' }}
+             {{ slotProps.data.instant_booking === 0 ? 'Trajet en attente' : 'Trajet confirmée' }}
              </template>
             </Column>
 
