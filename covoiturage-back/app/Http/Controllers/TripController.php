@@ -136,7 +136,7 @@ class TripController extends Controller
 
         return response()->json(['message' => 'Passenger added to trip'], 200);
     }
-
+//Test
     // Récupérer le conducteur d'un trajet
     public function getDriver($tripId)
     {
