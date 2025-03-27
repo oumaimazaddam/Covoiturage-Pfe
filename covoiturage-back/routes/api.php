@@ -36,6 +36,7 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::put('user/{id}', [JWTAuthController::class, 'updateUser']);
     Route::get('/admin/users', [JWTAuthController::class, 'getUsers']);
     Route::put('/admin/activate-user/{id}', [JWTAuthController::class, 'activateUser']);
+    Route::get('/admins/users', [JWTAuthController::class, 'getAdmin']);
 
     //
     
@@ -54,6 +55,8 @@ Route::middleware([JwtMiddleware::class])->group(function () {
    Route::get('show-profile/{id}', [ProfileController::class, 'show']);   
    Route::put('update-profile/{id}', [ProfileController::class, 'update']);  
    Route::delete('delete-profile/{id}', [ProfileController::class, 'deleteAccount']);
+   Route::get('/user-profile', [ProfileController::class, 'getCurrentUser']);
+
    //
   
 
