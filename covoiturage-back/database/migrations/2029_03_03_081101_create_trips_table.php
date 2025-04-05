@@ -23,7 +23,7 @@ return new class extends Migration
             $table->integer('available_seats')->default(1);
             $table->timestamps();  // Création des champs created_at et updated_at
         });
-
+//test
         // Créer la table des relations entre passagers et trajets
         Schema::create('trip_passenger', function (Blueprint $table) {
             $table->id();
