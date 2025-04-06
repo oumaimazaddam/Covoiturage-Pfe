@@ -53,9 +53,9 @@ Route::middleware([JwtMiddleware::class])->group(function () {
    Route::delete('delete-profile/{id}', [ProfileController::class, 'deleteAccount']);
    Route::get('/user-profile', [ProfileController::class, 'getCurrentUser']);
    //Messages
-   Route::get('/messages/{userId}', [ChatController::class, 'index']);
-   Route::post('/create-message', [ChatController::class, 'store']); 
-   Route::patch('/messages/{messageId}/seen', [ChatController::class, 'markAsSeen']); 
-   Route::delete('/delete-messages/{messageId}', [ChatController::class, 'destroy']);
+   Route::get('/chat/messages/{tripId}', [ChatController::class, 'fetchMessages']);
+   Route::post('/create-message', [ChatController::class, 'sendMessage']);
+   Route::delete('/chat/messages/{messageId}', [ChatController::class, 'deleteMessage']);
+   //Route::get('/messages/{userId}', [ChatController::class, 'index']);
 
 });

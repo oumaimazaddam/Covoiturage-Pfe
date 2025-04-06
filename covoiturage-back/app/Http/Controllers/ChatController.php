@@ -2,24 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ChMessage;
-use App\Models\User;
+use App\Events\MessageSent;
+use App\Events\MessageDeleted;
+use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use App\Events\MessageSent;
-
 class ChatController extends Controller
 {
-    /**
-     * Récupérer les messages entre l'utilisateur connecté et un autre utilisateur.
-     */
     public function index($userId)
     {
         $authUserId = Auth::id();
 
         // Récupérer les messages entre l'utilisateur authentifié et un autre utilisateur
-        $messages = ChMessage::where(function ($query) use ($authUserId, $userId) {
+        $messages = Message::where(function ($query) use ($authUserId, $userId) {
                 $query->where('from_id', $authUserId)->where('to_id', $userId);
             })
             ->orWhere(function ($query) use ($authUserId, $userId) {
@@ -30,51 +25,52 @@ class ChatController extends Controller
 
         return response()->json($messages);
     }
-
-    /**
-     * Envoyer un message.
-     */
-    public function store(Request $request)
+    public function sendMessage(Request $request)
     {
         $request->validate([
-            'to_id' => 'required|exists:users,id',
-            'body' => 'nullable|string|max:5000',
+            'content' => 'required|string',
+            'trip_id' => 'required|exists:trips,id',
             'attachment' => 'nullable|string',
         ]);
 
-        $message = ChMessage::create([
-            'id' => Str::uuid(),
-            'from_id' => Auth::id(),
-            'to_id' => $request->to_id,
-            'body' => $request->body,
+        $user = auth::user(); // JWT auth
+        $message = Message::create([
+            'user_id' => $user->id,
+            'trip_id' => $request->trip_id,
+            'content' => $request->content,
             'attachment' => $request->attachment,
             'seen' => false,
         ]);
-        broadcast(new MessageSent($message));
 
+        broadcast(new MessageSent($message->content, $user->id, $request->trip_id))->toOthers();
+        
+    
 
-        return response()->json(['message' => 'Message envoyé avec succès', 'data' => $message]);
+        return response()->json(['message' => $message->load('user')],201); // Include user data
     }
 
-    /**
-     * Marquer un message comme lu.
-     */
-    public function markAsSeen($messageId)
+    public function fetchMessages($tripId)
     {
-        $message = ChMessage::where('id', $messageId)->where('to_id', Auth::id())->firstOrFail();
-        $message->update(['seen' => true]);
+        $messages = Message::where('trip_id', $tripId)->with('user')->get();
+        return response()->json($messages);
+    }
+    public function deleteMessage(Request $request, $messageId)
+{
+    $user = Auth::user();
 
-        return response()->json(['message' => 'Message marqué comme lu']);
+    $message = Message::where('id', $messageId)
+                     ->where('trip_id', $request->trip_id)
+                     ->firstOrFail();
+
+    if ($message->user_id !== $user->id) {
+        return response()->json(['error' => 'You can only delete your own messages'], 403);
     }
 
-    /**
-     * Supprimer un message.
-     */
-    public function destroy($messageId)
-    {
-        $message = ChMessage::where('id', $messageId)->where('from_id', Auth::id())->firstOrFail();
-        $message->delete();
+    $tripId = $message->trip_id; // Store trip_id before deletion
+    $message->delete();
 
-        return response()->json(['message' => 'Message supprimé']);
-    }
+    broadcast(new MessageDeleted($messageId, $tripId))->toOthers();
+
+    return response()->json(['message' => 'Message deleted successfully'], 200);
+}
 }

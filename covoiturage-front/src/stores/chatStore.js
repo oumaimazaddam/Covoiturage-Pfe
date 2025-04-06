@@ -1,76 +1,163 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 
-export const useChatStore = defineStore("chat", {
+export const useChatStore = defineStore('chat', {
   state: () => ({
-    messages: [],
+    messages: [], // Array of message objects
+    currentUserId: localStorage.getItem('user_id'),
+    currentChannel: null,
   }),
-
   actions: {
-    // Charger les messages existants pour l'utilisateur
-    async fetchMessages(userId) {
+    async fetchMessages(tripId) {
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/api/messages/${userId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
-        });
-        this.messages = response.data;
-      } catch (error) {
-        console.error("Erreur lors de la récupération des messages", error);
-      }
-    },
-
-    // Envoi d'un message au serveur
-    async sendMessage(toId, body) {
-      try {
-        const response = await axios.post(
-          "http://127.0.0.1:8000/api/create-message",
-          { to_id: toId, body },
-          { headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` } }
-        );
-        
-        // Ajouter le message envoyé à l'état de Pinia (réagit instantanément)
-        this.messages.push(response.data.data);
-
-        // Diffuser le message via Echo en temps réel sur le canal privé (chat.[to_id])
-        window.Echo.channel(`chat.${toId}`)
-          .whisper('message.sent', response.data.data); // Envoi sur le canal privé
-
-      } catch (error) {
-        console.error("Erreur lors de l'envoi du message", error);
-      }
-    },
-
-    // Supprimer un message et mettre à jour l'état en conséquence
-    async deleteMessage(messageId) {
-      try {
-        await axios.delete(`http://127.0.0.1:8000/api/delete-messages/${messageId}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
-        });
-
-        // Filtrer et retirer le message supprimé de l'état
-        this.messages = this.messages.filter(msg => msg.id !== messageId);
-      } catch (error) {
-        console.error("Erreur lors de la suppression du message", error);
-      }
-    },
-
-    // Écouter les messages en temps réel via Laravel Echo
-    listenForMessages() {
-        const userId = localStorage.getItem('userId');
-        if (userId) {
-          // Assurez-vous que l'utilisateur est connecté et que Echo est configuré
-          window.Echo.channel(`chat.${userId}`)
-            .listen('message.sent', (event) => {
-              // Ajouter le message en temps réel à l'état
-              this.messages.push(event.message);
-            });
+        if (!tripId) {
+          console.error('No tripId provided for fetchMessages');
+          return;
         }
+        const response = await axios.get(`http://127.0.0.1:8000/api/chat/messages/${tripId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+            Accept: 'application/json',
+          },
+        });
+        // Ensure messages match the backend schema
+        this.messages = response.data.map(msg => ({
+          id: msg.id,
+          user_id: msg.user_id,
+          trip_id: msg.trip_id,
+          content: msg.content,
+          attachment: msg.attachment || null,
+          seen: msg.seen || false,
+          created_at: msg.created_at,
+          updated_at: msg.updated_at,
+          user: msg.user || { id: msg.user_id, name: `User ${msg.user_id}` },
+        }));
+      } catch (error) {
+        console.error('Erreur lors de la récupération des messages', error);
+        throw error;
+      }
     },
-  },
 
-  getters: {
-    getMessages() {
-      return this.messages;
-    }
+    async sendMessage(tripId, content) {
+      try {
+        if (!tripId || !content) {
+          console.error('Missing tripId or content for sendMessage');
+          return;
+        }
+        const payload = {
+          trip_id: Number(tripId), // Ensure numeric for backend
+          content: content,
+          attachment: null, // Nullable as per schema
+        };
+
+        const response = await axios.post(
+          'http://127.0.0.1:8000/api/create-message',
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+          }
+        );
+        console.log('API Response:', response.data);
+
+        const newMessage = response.data.message;
+        if (newMessage && !this.messages.some((m) => m.id === newMessage.id)) {
+          this.messages.push({
+            id: newMessage.id,
+            user_id: newMessage.user_id,
+            trip_id: newMessage.trip_id,
+            content: newMessage.content,
+            attachment: newMessage.attachment || null,
+            seen: newMessage.seen || false,
+            created_at: newMessage.created_at,
+            updated_at: newMessage.updated_at,
+            user: newMessage.user || { id: newMessage.user_id, name: `User ${newMessage.user_id}` },
+          });
+        }
+      } catch (error) {
+        console.error('Erreur lors de l’envoi du message', error);
+        if (error.response) {
+          console.error('Response data:', error.response.data);
+          console.error('Response status:', error.response.status);
+          console.error('Response headers:', error.response.headers);
+        }
+        throw error;
+      }
+    },
+
+    async deleteMessage(messageId, tripId) {
+      try {
+        if (!messageId || !tripId) {
+          console.error('Missing messageId or tripId for deleteMessage');
+          return;
+        }
+        await axios.delete(`http://127.0.0.1:8000/api/chat/messages/${messageId}`, {
+          data: { trip_id: Number(tripId) }, // Ensure numeric
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        this.messages = this.messages.filter((msg) => msg.id !== messageId);
+      } catch (error) {
+        console.error('Erreur lors de la suppression du message', error);
+        throw error;
+      }
+    },
+
+    listenForMessages(tripId) {
+      try {
+        if (!this.currentUserId) {
+          console.error('No user ID found in localStorage');
+          return;
+        }
+        if (!tripId) {
+          console.error('No tripId provided for listenForMessages');
+          return;
+        }
+
+        if (this.currentChannel) {
+          window.Echo.leave(this.currentChannel);
+        }
+
+        this.currentChannel = `trip.${tripId}`;
+        console.log(`Listening on channel: ${this.currentChannel}`);
+
+        window.Echo.private(this.currentChannel)
+          .listen('MessageSent', (e) => {
+            console.log('Message reçu:', e);
+            const message = e.message;
+            if (message && !this.messages.some((m) => m.id === message.id)) {
+              this.messages.push({
+                id: message.id,
+                user_id: message.user_id,
+                trip_id: message.trip_id,
+                content: message.content,
+                attachment: message.attachment || null, // Match schema
+                seen: message.seen || false, // Match schema
+                created_at: message.created_at,
+                updated_at: message.updated_at,
+                user: message.user || { id: message.user_id, name: `User ${message.user_id}` },
+              });
+            }
+          })
+          .listen('MessageDeleted', (e) => {
+            console.log('Message supprimé:', e);
+            this.messages = this.messages.filter((msg) => msg.id !== e.messageId);
+          })
+          .listen('pusher:subscription_succeeded', () => {
+            console.log('✅ Successfully subscribed to channel');
+          })
+          .listen('pusher:subscription_error', (error) => {
+            console.error('❌ Subscription failed:', error);
+          });
+      } catch (error) {
+        console.error('Real-time listener error:', error);
+      }
+    },
   },
 });

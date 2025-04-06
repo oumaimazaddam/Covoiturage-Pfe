@@ -72,6 +72,10 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->belongsToMany(Trip::class, 'driver_id');
     }
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
    
 
    

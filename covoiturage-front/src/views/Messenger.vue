@@ -1,60 +1,82 @@
 <script>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router'; // Import useRoute
 import { useChatStore } from '@/stores/chatStore';
-import axios from 'axios';
+import '@/service/echo';
 
 export default {
-  setup() {
+  name: 'Messenger',
+  props: {
+    tripId: {
+      type: [Number, String],
+      required: false, // Make optional since we're using query
+      default: null,
+    },
+  },
+  setup(props) {
+    const route = useRoute(); // Access route info
     const chatStore = useChatStore();
-    const users = ref([]);
-    const selectedUser = ref(null);
-    const newMessage = ref("");
-    const userId = ref(1); // Remplace par l'ID de l'utilisateur connecté (peut être récupéré depuis l'auth JWT)
-    
-    // Charger la liste des utilisateurs
-    const fetchUsers = async () => {
+    const newMessage = ref('');
+    const userId = ref(localStorage.getItem('user_id'));
+
+    // Use query param if prop isn’t provided
+    const effectiveTripId = computed(() => props.tripId || route.query.tripId);
+
+    console.log('Setup - effectiveTripId:', effectiveTripId.value);
+
+    const fetchMessages = async () => {
+      console.log('fetchMessages - effectiveTripId:', effectiveTripId.value);
+      if (!effectiveTripId.value) {
+        console.error('tripId is undefined in fetchMessages');
+        return;
+      }
+      await chatStore.fetchMessages(effectiveTripId.value);
+    };
+
+    const sendMessage = async () => {
+      console.log('sendMessage - effectiveTripId:', effectiveTripId.value, 'content:', newMessage.value);
+      const tripIdNum = Number(effectiveTripId.value);
+      if (!newMessage.value.trim() || !tripIdNum) {
+        console.error('Cannot send message: tripId or content missing');
+        return;
+      }
       try {
-        const response = await axios.get("http://127.0.0.1:8000/api/users", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
-        });
-        users.value = response.data;
+        await chatStore.sendMessage(tripIdNum, newMessage.value);
+        newMessage.value = '';
       } catch (error) {
-        console.error("Erreur lors du chargement des utilisateurs", error);
+        console.error('Failed to send message:', error);
       }
     };
 
-    // Charger les messages du user sélectionné
-    const selectUser = async (user) => {
-      selectedUser.value = user;
-      await chatStore.fetchMessages(user.id);
-      // Écouter les messages en temps réel après sélection d'un utilisateur
-      chatStore.listenForMessages();
-    };
-
-    // Messages extraits de Pinia
-    const messages = computed(() => chatStore.messages);
-
-    // Envoyer un message
-    const sendMessage = async () => {
-      if (!newMessage.value.trim() || !selectedUser.value) return;
-      await chatStore.sendMessage(selectedUser.value.id, newMessage.value);
-      newMessage.value = "";
-    };
-
-    // Supprimer un message
     const deleteMessage = async (messageId) => {
-      await chatStore.deleteMessage(messageId);
+      console.log('deleteMessage - effectiveTripId:', effectiveTripId.value);
+      const tripIdNum = Number(effectiveTripId.value);
+      if (!tripIdNum) {
+        console.error('Cannot delete message: tripId missing');
+        return;
+      }
+      await chatStore.deleteMessage(messageId, tripIdNum);
     };
 
-    // Charger les utilisateurs à l'initialisation
+    const isOwnMessage = (message) => {
+      return message.user_id === parseInt(userId.value);
+    };
+
     onMounted(() => {
-      fetchUsers();
+      console.log('onMounted - effectiveTripId:', effectiveTripId.value);
+      if (!effectiveTripId.value) {
+        console.error('No tripId provided on mount');
+        return;
+      }
+      if (window.Echo && chatStore.currentChannel) {
+        window.Echo.leave(chatStore.currentChannel);
+      }
+      fetchMessages();
+      chatStore.listenForMessages(effectiveTripId.value);
     });
 
-    // Réagir à la réception d'un message
-    watch(messages, (newMessages) => {
+    watch(() => chatStore.messages, (newMessages) => {
       if (newMessages.length > 0) {
-        // Scroller vers le bas si de nouveaux messages sont ajoutés
         const messagesContainer = document.querySelector('.messages');
         if (messagesContainer) {
           messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -63,14 +85,13 @@ export default {
     });
 
     return {
-      users,
-      selectedUser,
-      messages,
+      messages: computed(() => chatStore.messages),
       newMessage,
       sendMessage,
       deleteMessage,
-      selectUser,
+      isOwnMessage,
       userId,
+     // Expose to template
     };
   },
 };
@@ -78,137 +99,167 @@ export default {
 
 <template>
   <div class="chat-container">
-    <h2>Messagerie</h2>
-
-    <!-- Liste des utilisateurs pour le chat -->
-    <div class="users-list">
-      <div 
-        v-for="user in users" 
-        :key="user.id" 
-        @click="selectUser(user)"
-        :class="{ active: selectedUser && selectedUser.id === user.id }"
-      >
-        {{ user.name }}
-      </div>
-    </div>
-
-    <!-- Zone de discussion -->
-    <div v-if="selectedUser" class="chat-box">
-      <h3>Discussion avec {{ selectedUser.name }}</h3>
-
+    <h2>Chat pour le trajet #{{ tripId }}</h2>
+    <div class="chat-box">
       <div class="messages">
-        <div 
-          v-for="message in messages" 
+        <div
+          v-for="message in messages"
           :key="message.id"
-          :class="{'message sent': message.from_id === userId, 'message received': message.from_id !== userId}"
+          :class="{
+            'message-container-right': isOwnMessage(message),
+            'message-container-left': !isOwnMessage(message),
+          }"
         >
-          <p>{{ message.body }}</p>
-          <span v-if="message.seen" class="seen">✔✔</span>
-          <button @click="deleteMessage(message.id)" class="delete-btn">🗑</button>
+          <div
+            class="message-bubble"
+            :class="{ 'sent': isOwnMessage(message), 'received': !isOwnMessage(message) }"
+          >
+            <p class="message-text">{{ message.content }}</p>
+            <div class="message-meta">
+              <span>{{ message.user.name }}</span>
+              <span v-if="isOwnMessage(message)" class="message-status">
+                {{ message.seen ? '✓✓' : '✓' }}
+              </span>
+            </div>
+          </div>
+          <button
+            v-if="isOwnMessage(message)"
+            @click="deleteMessage(message.id)"
+            class="delete-btn"
+          >
+            🗑
+          </button>
         </div>
       </div>
-
       <div class="message-input">
-        <input v-model="newMessage" placeholder="Écrire un message..." @keyup.enter="sendMessage" />
+        <input
+          v-model="newMessage"
+          placeholder="Écrire un message..."
+          @keyup.enter="sendMessage"
+        />
         <button @click="sendMessage">Envoyer</button>
       </div>
     </div>
-    <div v-else class="no-chat">Sélectionnez un utilisateur pour commencer la discussion.</div>
   </div>
 </template>
 
-
-
 <style scoped>
+/* Your existing styles remain unchanged */
 .chat-container {
-  display: flex;
   width: 100%;
   max-width: 900px;
   margin: auto;
   border: 1px solid #ccc;
   border-radius: 8px;
   background: #f9f9f9;
-}
-
-.users-list {
-  width: 30%;
-  border-right: 1px solid #ccc;
-  padding: 10px;
-}
-
-.users-list div {
-  padding: 10px;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: background 0.3s;
-}
-
-.users-list div:hover,
-.users-list div.active {
-  background: #ddd;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-box {
-  width: 70%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 10px;
 }
 
 .messages {
-  max-height: 300px;
+  flex: 1;
   overflow-y: auto;
-  margin-bottom: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
-.message {
-  padding: 8px;
-  border-radius: 5px;
-  margin: 5px 0;
+.message-container-right {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0;
+  align-items: flex-end;
+}
+
+.message-container-left {
+  display: flex;
+  justify-content: flex-start;
+  margin: 8px 0;
+  align-items: flex-end;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 10px 15px;
+  border-radius: 18px;
   position: relative;
+  word-wrap: break-word;
 }
 
-.message.sent {
-  background: #dcf8c6;
-  text-align: right;
+.message-bubble.sent {
+  background-color: #dcf8c6;
+  border-top-right-radius: 0;
+  margin-left: auto;
 }
 
-.message.received {
-  background: #fff;
-  text-align: left;
+.message-bubble.received {
+  background-color: #ffffff;
+  border-top-left-radius: 0;
+  margin-right: auto;
+  border: 1px solid #eee;
 }
 
-.seen {
+.message-text {
+  margin: 0;
+  padding: 0;
+}
+
+.message-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
   font-size: 12px;
+  color: #666;
+}
+
+.message-status {
   color: #34b7f1;
 }
 
 .delete-btn {
   background: none;
   border: none;
+  color: #ff6b6b;
+  margin-left: 8px;
   cursor: pointer;
-  color: red;
-  position: absolute;
-  right: 5px;
-  top: 5px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.message-container-right:hover .delete-btn {
+  opacity: 1;
 }
 
 .message-input {
   display: flex;
-  gap: 5px;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid #eee;
 }
 
 input {
   flex: 1;
-  padding: 5px;
+  padding: 8px 12px;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 20px;
+  outline: none;
 }
 
 button {
-  padding: 5px 10px;
+  padding: 8px 16px;
   background: #007bff;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 20px;
   cursor: pointer;
 }
 </style>
