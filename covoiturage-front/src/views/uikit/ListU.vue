@@ -39,8 +39,8 @@ const activateUser = async (id) => {
 };
 const getRoleName = (roleId) => {
     switch (roleId) {
-        case 2: return 'Passenger';
-        case 3: return 'Conducteur';
+        case 3: return 'Passenger';
+        case 2: return 'Conducteur';
        
     }
 };
