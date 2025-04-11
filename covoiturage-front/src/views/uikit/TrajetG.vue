@@ -8,10 +8,10 @@ const trips = ref([]);
 const reservedTrips = ref([]);
 const loadingTrips = ref(true);
 const loadingReservedTrips = ref(true);
-const userRole = ref(null); // Stocke le rôle de l'utilisateur
-const isAdmin = ref(false); // Vérifier si c'est un admin
+const userRole = ref(null); 
+const isAdmin = ref(false); 
 
-// Fonction pour récupérer le rôle de l'utilisateur
+
 const fetchUserRole = async () => {
     try {
         const token = localStorage.getItem("access_token");
@@ -23,27 +23,27 @@ const fetchUserRole = async () => {
         const response = await axios.get("http://localhost:8000/api/admins/users", {
             headers: { Authorization: `Bearer ${token}` }
         });
-             console.log("Réponse API :", response.data); // Vérifier les données reçues
+             console.log("Réponse API :", response.data); 
 
 
         userRole.value = response.data.user.role_id;
-        isAdmin.value = userRole.value === 1; // Vérifie si l'utilisateur est un admin
+        isAdmin.value = userRole.value === 1; 
 
         if (!isAdmin.value) {
              alert("Accès refusé : Vous n'avez pas les permissions nécessaires.");
-            router.push("/"); // Rediriger vers la page d'accueil si l'utilisateur n'est pas admin
+            router.push("/");
         }
 
     } catch (error) {
         console.error("Erreur lors de la récupération du rôle", error);
-        router.push("/"); // Rediriger en cas d'erreur
+        router.push("/"); 
     }
 };
 // Charger tous les trajets
 const fetchTrips = async () => {
     try {
         const token = localStorage.getItem("access_token");
-        console.log("Token JWT récupéré :", token); // Vérification
+        console.log("Token JWT récupéré :", token); 
 
         if (!token) {
             throw new Error("Aucun token trouvé. Veuillez vous reconnecter.");
@@ -64,7 +64,6 @@ const fetchTrips = async () => {
 
 
 
-// Charger uniquement les trajets réservés
 const fetchReservedTrips = async () => {
     try {
         const response = await axios.get('http://localhost:8000/api/reservations', {
@@ -78,9 +77,8 @@ const fetchReservedTrips = async () => {
     }
 };
 
-// Charger les données au montage du composant
 onMounted(async () => {
-    await fetchUserRole(); // Vérifie d'abord le rôle
+    await fetchUserRole(); 
     if (isAdmin.value) {
         fetchTrips();
         fetchReservedTrips();
@@ -88,11 +86,11 @@ onMounted(async () => {
 });
 
 
-// Fonction pour formater les dates
+
 const formatTime = (value) => {
     if (!value) return "Aucune heure";
 
-    // Si la valeur est déjà au format HH:mm, on l'affiche directement
+   
     if (/^\d{2}:\d{2}$/.test(value)) {
         return value;
     }

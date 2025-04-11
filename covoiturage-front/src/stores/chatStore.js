@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-
+import { useToast } from 'vue-toastification';
 export const useChatStore = defineStore('chat', {
   state: () => ({
     messages: [], // Array of message objects
@@ -110,6 +110,7 @@ export const useChatStore = defineStore('chat', {
     },
 
     listenForMessages(tripId) {
+      const toast = useToast();
       try {
         if (!this.currentUserId) {
           console.error('No user ID found in localStorage');
@@ -119,35 +120,37 @@ export const useChatStore = defineStore('chat', {
           console.error('No tripId provided for listenForMessages');
           return;
         }
-
+    
         if (this.currentChannel) {
           window.Echo.leave(this.currentChannel);
         }
-
-        this.currentChannel = `trip.${tripId}`;
+    
+        this.currentChannel = `trip.${tripId}.user.${this.currentUserId}`;
         console.log(`Listening on channel: ${this.currentChannel}`);
-
+        
         window.Echo.private(this.currentChannel)
-          .listen('MessageSent', (e) => {
-            console.log('Message reçu:', e);
+        .listen('.new-toast', (e) => {
+            console.log('New toast received:', e);
+            toast.success(`New message from ${e.message.user.name}: ${e.message.content}`);
+        })
+        window.Echo.private(this.currentChannel)
+          .listen('.message.sent', (e) => {
+            console.log('New message received:', e);
             const message = e.message;
             if (message && !this.messages.some((m) => m.id === message.id)) {
+              // Ensure the message is added to the store
               this.messages.push({
                 id: message.id,
                 user_id: message.user_id,
                 trip_id: message.trip_id,
                 content: message.content,
-                attachment: message.attachment || null, // Match schema
-                seen: message.seen || false, // Match schema
+                attachment: message.attachment || null,
+                seen: message.seen || false,
                 created_at: message.created_at,
                 updated_at: message.updated_at,
                 user: message.user || { id: message.user_id, name: `User ${message.user_id}` },
               });
             }
-          })
-          .listen('MessageDeleted', (e) => {
-            console.log('Message supprimé:', e);
-            this.messages = this.messages.filter((msg) => msg.id !== e.messageId);
           })
           .listen('pusher:subscription_succeeded', () => {
             console.log('✅ Successfully subscribed to channel');
@@ -158,6 +161,14 @@ export const useChatStore = defineStore('chat', {
       } catch (error) {
         console.error('Real-time listener error:', error);
       }
-    },
+    },   
+    async pollMessages(tripId) {
+      setInterval(async () => {
+        if (tripId) {
+          await this.fetchMessages(tripId);
+        }
+      }, 2000); // Poll every 2 seconds
+    }
+     
   },
 });

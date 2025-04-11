@@ -228,48 +228,45 @@ fetchCurrentUser();
 
     <div v-if="loading" class="text-center text-gray-500">Chargement...</div>
 
-    <table v-else class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
-      <thead>
-        <tr class="bg-gray-100 text-gray-600">
-          <th class="py-3 px-6 text-left">Nom</th>
-          <th class="py-3 px-6 text-left">Email</th>
-          <th class="py-3 px-6 text-left">Téléphone</th>
-          <th class="py-3 px-6 text-left">Date de naissance</th>
-          <th class="py-3 px-6 text-left">Rôle</th>
-          <th class="py-3 px-6 text-left">Matricule de véhicule</th>
-          <th class="py-3 px-6 text-left">Permis</th>
-          <th class="py-3 px-6 text-left">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="user in users" :key="user.id" class="border-t hover:bg-gray-50">
-          <td class="py-3 px-6">{{ user.name }}</td>
-          <td class="py-3 px-6">{{ user.email }}</td>
-          <td class="py-3 px-6">{{ user.phone_number }}</td>
-          <td class="py-3 px-6">{{ user.birthday }}</td>
-         <td class="py-3 px-6">{{ roleMapping[user.role_id] || 'Inconnu' }}</td>
+   <DataTable :value="users" :paginator="true" :rows="5" dataKey="id" showGridlines responsiveLayout="scroll">
+  <template #empty>Aucun utilisateur trouvé.</template>
+  <template #loading>Chargement des utilisateurs...</template>
 
-          <td class="py-3 px-6">{{ user.car_id }}</td>
-          <td class="py-3 px-6">{{ user.drivingLicence }}</td>
-          <td class="py-3 px-6">
-             <div class="flex space-x-2">
-            <button 
-              @click="openModal(user)" 
-              class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
-            >
-              Modifier
-            </button>
-            <button 
-              @click="deleteUser(user.id)" 
-              class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-700"
-            >
-              Supprimer
-            </button>
-             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <Column field="name" header="Nom" sortable></Column>
+  <Column field="email" header="Email" sortable></Column>
+  <Column field="phone_number" header="Téléphone" sortable></Column>
+  <Column field="birthday" header="Date de naissance" sortable></Column>
+
+  <Column header="Rôle" sortable>
+    <template #body="{ data }">
+      {{ roleMapping[data.role_id] || 'Inconnu' }}
+    </template>
+  </Column>
+
+  <Column field="car_id" header="Matricule de véhicule" sortable></Column>
+  <Column field="drivingLicence" header="Permis" sortable></Column>
+
+  <Column header="Actions">
+    <template #body="{ data }">
+      <div class="flex gap-2">
+        <Button 
+          label="Modifier" 
+          icon="pi pi-pencil"
+          @click="openModal(data)" 
+          class="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark transition"
+        />
+        <Button 
+          label="Supprimer" 
+          icon="pi pi-trash"
+          @click="deleteUser(data.id)" 
+    class="custom-delete-button"
+
+        />
+      </div>
+    </template>
+  </Column>
+</DataTable>
+
 
     <!-- Modal d'édition/création -->
     <div v-if="showModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
@@ -297,12 +294,23 @@ fetchCurrentUser();
     </div>
   </div>
    <!-- Message d'accès refusé -->
-  <div v-else class="text-center text-red-500 font-semibold text-xl p-10">
-    Accès refusé 🚫
-  </div>
+ 
 </template>
 
 
 
 <style scoped>
+.custom-delete-button {
+  background-color: #f80b0b; /* Couleur rouge claire */
+  color: white;
+  font-weight: bold;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.custom-delete-button:hover {
+  background-color: #f44336; /* Couleur rouge plus foncée */
+  transform: scale(1.05); /* Légère animation de zoom */
+}
 </style>

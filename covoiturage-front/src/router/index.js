@@ -77,9 +77,10 @@ const router = createRouter({
                     component: () => import('@/views/uikit/MediaDoc.vue')
                 },
                 {
-                    path: '/messenger', 
+                    path: '/messenger',
                     name: 'messenger',
-                    component: () => import('@/views/Messenger.vue')
+                    component: () => import('@/views/Messenger.vue'),
+                     // Automatically pass route params as props
                 },
                 {
                     path: '/uikit/file',
@@ -131,7 +132,7 @@ const router = createRouter({
         {
             path: '/logout',
             name: 'logout',
-            component: () => import('@/components/auth/Register.vue')
+            component: () => import('@/components/auth/Login.vue')
         },
 
         {
@@ -142,5 +143,6 @@ const router = createRouter({
        
     ]
 });
+
 
 export default router;

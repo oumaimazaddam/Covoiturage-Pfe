@@ -2,7 +2,7 @@
 import AvisPassengersWidget from '@/components/dashboard/AvisPassengersWidget.vue';
 import ReservationWidget from '@/components/dashboard/ReservationWidget.vue';
 import RepartitionTrajetWidget from '@/components/dashboard/RepartitionTrajetWidget.vue';
-import TableTrajetWidget from '@/components/dashboard/TableTrajetWidget.vue';
+
 import RevenuePayementWidget from '@/components/dashboard/RevenuePayementWidget.vue';
 import StatsWidget from '@/components/dashboard/StatsWidget.vue';
 </script>
@@ -12,7 +12,7 @@ import StatsWidget from '@/components/dashboard/StatsWidget.vue';
         <StatsWidget />
 
         <div class="col-span-12 xl:col-span-6">
-            <TableTrajetWidget />
+          
             <AvisPassengersWidget class="mb-6" />
 
             <RepartitionTrajetWidget />

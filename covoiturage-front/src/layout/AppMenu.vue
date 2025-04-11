@@ -2,37 +2,57 @@
 import { ref } from 'vue';
 import AppMenuItem from './AppMenuItem.vue';
 
-const model = ref([
-    {
-        label: 'Carpool',
-        items: [
-            { label: 'Dashboard Admin', icon: 'pi pi-home', to: '/dashboard' },
-            { label: 'Gestion des droits des utilisateurs', icon: 'pi pi-user', to: '/uikit/utilisateur' },
-            { label: 'Utilisateurs En attent', icon: 'pi pi-users', to: '/uikit/list' },
-            { label: 'Gestion de Trajet', icon: 'pi pi-map', to: '/uikit/trajet', class: 'rotated-icon' },
-            { label: 'Feedbacks', icon: 'pi pi-comments', to: '/uikit/feedbacks' },
-            { label: 'Financement', icon: 'pi pi-wallet', to: '/uikit/financement' }
-        ]
-    },
-    {
-        label: 'UI Components',
-        items: [
-            { label: 'Login', icon: 'pi pi-fw pi-sign-in', to: '/login' },
-            { label: 'User Profile', icon: 'pi pi-user', to: '/uikit/profile' },
-            { label: 'Messengers', icon: 'pi pi-comment', to: '/messenger' },
-            { label: 'Passengers Dashboard', icon: 'pi pi-id-card', to: '/uikit/passengers' },
-            { label: 'Drivers Dashboard', icon: 'pi pi-car', to: '/uikit/drivers' },
-            { label: 'Logout', icon: 'pi pi-sign-out', to: '/logout' }
-        ]
-    },
-    {
-        label: 'Get Started',
-        items: [
-            { label: 'Documentation', icon: 'pi pi-fw pi-book', to: '/documentation' },
-            { label: 'View Source', icon: 'pi pi-fw pi-github', url: 'https://github.com/primefaces/sakai-vue', target: '_blank' }
-        ]
-    }
-]);
+// Récupère le role_id et le convertit bien en nombre
+const role_id = Number(localStorage.getItem('user_role'));
+
+// Déclare le menu model
+const model = ref([]);
+
+if (role_id === 1) {
+    // Admin : accès à tout
+    model.value = [
+        {
+            label: 'Carpool',
+            items: [
+                { label: 'Dashboard Admin', icon: 'pi pi-home', to: '/dashboard' },
+                { label: 'Gestion des droits des utilisateurs', icon: 'pi pi-user', to: '/uikit/utilisateur' },
+                { label: 'Utilisateurs En attent', icon: 'pi pi-users', to: '/uikit/list' },
+                { label: 'Gestion de Trajet', icon: 'pi pi-map', to: '/uikit/trajet', class: 'rotated-icon' },
+                { label: 'Feedbacks', icon: 'pi pi-comments', to: '/uikit/feedbacks' },
+                { label: 'Financement', icon: 'pi pi-wallet', to: '/uikit/financement' }
+            ]
+        },
+        {
+            label: 'UI Components',
+            items: [
+                
+                { label: 'User Profile', icon: 'pi pi-user', to: '/uikit/profile' },
+               
+                { label: 'Logout', icon: 'pi pi-sign-out', to: '/logout' }
+            ]
+        },
+        {
+            label: 'Get Started',
+            items: [
+                { label: 'Documentation', icon: 'pi pi-fw pi-book', to: '/documentation' },
+                { label: 'View Source', icon: 'pi pi-fw pi-github', url: 'https://github.com/primefaces/sakai-vue', target: '_blank' }
+            ]
+        }
+    ];
+} else {
+    // Rôles 2 et 3 : menu limité
+    model.value = [
+        {
+            label: 'UI Components',
+            items: [
+               
+                { label: 'User Profile', icon: 'pi pi-user', to: '/uikit/profile' },
+               
+                { label: 'Logout', icon: 'pi pi-sign-out', to: '/logout' }
+            ]
+        }
+    ];
+}
 </script>
 
 <template>

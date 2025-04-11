@@ -88,7 +88,7 @@ onBeforeMount(() => {
                             icon="pi pi-check"
                             @click="activateUser(data.id)"
                             :disabled="data.is_active"
-                            class="p-button-success"
+                            class="bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark transition"
                         />
                     </template>
                 </Column>
