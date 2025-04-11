@@ -13,9 +13,9 @@ class MessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $message;
+    public $message; // Expecting a Message model instance
     public $userId;
-    public $trip_id; // Changed from rideId to tripId
+    public $trip_id;
 
     public function __construct($message, $userId, $trip_id)
     {
@@ -26,13 +26,18 @@ class MessageSent implements ShouldBroadcast
 
     public function broadcastOn()
     {
-        return new PrivateChannel('trip.' . $this->trip_id); // Updated to trip
+        return new PrivateChannel('trip.' . $this->trip_id);
     }
+
     public function broadcastWith()
     {
         return [
-            'message' => $this->message->load('user'),
-            'user' => $this->userId
+            'message' => $this->message->load('user'), // Works with a model instance
         ];
+    }
+
+    public function broadcastAs()
+    {
+        return 'message.sent';
     }
 }

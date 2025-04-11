@@ -49,6 +49,7 @@ public function update(Request $request, $id)
         'role_id' => 'sometimes|integer|exists:roles,id',
         'car_id' => 'sometimes|string|max:50',
         'drivingLicence' => 'sometimes|string|max:50',
+        'current_password' => 'required_with:password|string',
         'password' => 'sometimes|string|min:6|confirmed',
     ]);
 
@@ -85,8 +86,8 @@ public function update(Request $request, $id)
         $user->drivingLicence = $request->drivingLicence;
     }
 
-    if ($request->has('password')) {
-        $user->password = Hash::make($request->password);
+    if ($request->has('password') && !Hash::check($request->input('current_password'), $user->password)) {
+        return response()->json(['message' => 'Mot de passe actuel incorrect'], 403);
     }
 
     if ($request->hasFile('photo_profile')) {
@@ -106,19 +107,32 @@ public function update(Request $request, $id)
 
 
  
-public function deleteAccount($id)
+public function deleteProfile(Request $request, $id)
 {
+    // Find the user by ID
     $user = User::find($id);
 
+    // Check if the user exists
     if (!$user) {
         return response()->json(['error' => 'User not found'], 404);
     }
 
+    // Verify that the authenticated user matches the user being deleted
+    if (Auth::user()->id !== $user->id) {
+        return response()->json(['error' => 'Unauthorized action'], 403);
+    }
+
+    // Check if the provided password matches the user's current password
+    if (!Hash::check($request->input('password'), $user->password)) {
+        return response()->json(['message' => 'Mot de passe incorrect'], 403);
+    }
+
     try {
+        // Delete the user
         $user->delete();
-        return response()->json(['message' => 'Account deleted successfully'], 200);
+        return response()->json(['message' => 'Profil supprimé avec succès'], 200);
     } catch (\Exception $e) {
-        return response()->json(['error' => 'Something went wrong'], 500);
+        return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
     }
 }
 public function getCurrentUser()

@@ -6,9 +6,9 @@ use App\Http\Controllers\jwtauthetication\JWTAuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\JwtMiddleware;
 use App\Http\Controllers\TripController;
-
+use Illuminate\Support\Facades\Broadcast; // Add this line
 use App\Http\Controllers\ChatController;
-
+use Tymon\JWTAuth\Facades\JWTAuth;
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -50,12 +50,27 @@ Route::middleware([JwtMiddleware::class])->group(function () {
    //Profile
    Route::get('show-profile/{id}', [ProfileController::class, 'show']);   
    Route::put('update-profile/{id}', [ProfileController::class, 'update']);  
-   Route::delete('delete-profile/{id}', [ProfileController::class, 'deleteAccount']);
+   Route::delete('delete-profile/{id}', [ProfileController::class, 'deleteProfile']);
    Route::get('/user-profile', [ProfileController::class, 'getCurrentUser']);
    //Messages
    Route::get('/chat/messages/{tripId}', [ChatController::class, 'fetchMessages']);
    Route::post('/create-message', [ChatController::class, 'sendMessage']);
    Route::delete('/chat/messages/{messageId}', [ChatController::class, 'deleteMessage']);
    //Route::get('/messages/{userId}', [ChatController::class, 'index']);
-
+//
+Route::post('/broadcasting/auth', function (Request $request) {
+    try {
+        // Authenticate the user using the JWT token from the Authorization header
+        $user = JWTAuth::parseToken()->authenticate();
+        
+        // Delegate to Laravel's BroadcastController to authorize the channel
+        return app(\Illuminate\Broadcasting\BroadcastController::class)->authenticate($request);
+    } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+        return response()->json(['error' => 'Token expired'], 401);
+    } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+        return response()->json(['error' => 'Token invalid'], 401);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+})->middleware('auth:api');
 });

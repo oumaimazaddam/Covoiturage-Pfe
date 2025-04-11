@@ -7,6 +7,7 @@ use App\Events\MessageDeleted;
 use App\Models\Message;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Events\NewMessageToast;
 class ChatController extends Controller
 {
     public function index($userId)
@@ -33,7 +34,7 @@ class ChatController extends Controller
             'attachment' => 'nullable|string',
         ]);
 
-        $user = auth::user(); // JWT auth
+        $user = Auth::user();
         $message = Message::create([
             'user_id' => $user->id,
             'trip_id' => $request->trip_id,
@@ -42,11 +43,19 @@ class ChatController extends Controller
             'seen' => false,
         ]);
 
-        broadcast(new MessageSent($message->content, $user->id, $request->trip_id))->toOthers();
-        
-    
+        // Pass the full $message object, not just $message->content
+        event(new MessageSent($message, $user->id, $request->trip_id));
+        //
+        $recipient = Message::where('trip_id', $request->trip_id)
+        ->where('user_id', '!=', $user->id)
+        ->first()
+        ?->user;
 
-        return response()->json(['message' => $message->load('user')],201); // Include user data
+    if ($recipient) {
+        event(new NewMessageToast($message, $request->trip_id, $recipient->id));
+    }
+
+        return response()->json(['message' => $message->load('user')], 201);
     }
 
     public function fetchMessages($tripId)
