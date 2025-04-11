@@ -11,7 +11,8 @@ export default defineConfig({
         'process.env': {} // Ajout important pour éviter certaines erreurs avec Pusher
     },
     optimizeDeps: {
-        noDiscovery: true
+        noDiscovery: true,
+        include: ['pusher-js', 'laravel-echo']
     },
     plugins: [
         vue(),
@@ -23,5 +24,10 @@ export default defineConfig({
         alias: {
             '@': fileURLToPath(new URL('./src', import.meta.url))
         }
-    }
+    } ,
+    build: {
+        rollupOptions: {
+          external: ['laravel-echo', 'pusher-js'] // Exclure ces modules du bundling
+        }
+      }
 });
