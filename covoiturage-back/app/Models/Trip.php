@@ -27,11 +27,15 @@ class Trip extends Model
     }
 
     // Relation avec le conducteur
-    public function driver()
+    public function drivers()
     {
-        return $this->belongsTo(User::class, 'driver_id');
+        return $this->belongsToMany(User::class, 'trip_passenger', 'trip_id', 'driver_id')
+        ->withTimestamps();
     }
-   
+    public function users()
+    {
+        return $this->belongsTo(User::class,'driver_id');
+    }
     
    
     

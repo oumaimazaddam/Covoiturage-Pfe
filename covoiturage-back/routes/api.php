@@ -27,6 +27,7 @@ Route::post('/admin/activate-user/{id}', [JWTAuthController::class, 'activateUse
 //
 Route::get('trips', [TripController::class, 'index']); 
 Route::get('trips/{id}', [TripController::class, 'show']);
+Route::get('trips/{tripId}/driver', [TripController::class, 'getDriver']);
 //
 Route::middleware([JwtMiddleware::class])->group(function () {
     Route::get('users', [JWTAuthController::class, 'getUser']);
@@ -46,7 +47,7 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::get('trips', [TripController::class, 'index']); 
     //Reservation
     Route::post('trips/{tripId}/passenger/{passengerId}', [TripController::class, 'addPassenger']);
-   Route::get('trips/{tripId}/driver', [TripController::class, 'getDriver']);
+   Route::get('trips/{id}/driver', [TripController::class, 'getDriver']);
    //Profile
    Route::get('show-profile/{id}', [ProfileController::class, 'show']);   
    Route::put('update-profile/{id}', [ProfileController::class, 'update']);  

@@ -72,6 +72,10 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $this->belongsToMany(Trip::class, 'driver_id');
     }
+    public function tripsAsPassenger()
+{
+    return $this->belongsToMany(Trip::class, 'trip_passenger', 'passenger_id', 'trip_id');
+}
     public function messages()
     {
         return $this->hasMany(Message::class);

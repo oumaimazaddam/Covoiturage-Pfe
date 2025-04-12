@@ -17,8 +17,18 @@ class TripController extends Controller
     }
     public function show($id)
     {
-        $trip = Trip::findOrFail($id);
-        return response()->json($trip);
+        $trip = Trip::with('drivers')->findOrFail($id);
+        $driver = $trip->drivers()->first();
+        return response()->json([
+            'message' => 'Trip retrieved successfully',
+            'trip' => $trip,
+            'driver' => $driver ? [
+                'id' => $driver->id,
+                'name' => $driver->name,
+                // Ajoutez d'autres champs si nécessaire
+            ] : null,
+            'has_driver' => !is_null($driver),
+        ]);
     }
 
     public function store(Request $request)
@@ -44,10 +54,6 @@ class TripController extends Controller
             return response()->json(['error' => 'La date du trajet ne peut pas être dans le passé'], 400);
         }
        
-          $driverId = $user->id;
-
-          
-        
            $trip = Trip::create([
             'departure' => $request->get('departure'),
             'destination' => $request->get('destination'),
@@ -57,11 +63,13 @@ class TripController extends Controller
             'price' =>$request->get('price'),
             'instant_booking' =>$request->get('instant_booking'),
             'available_seats' =>$request->get('available_seats'),
-            'driver_id' =>$driverId,
+          
         ]);
-        
        
+        $trip->drivers()->attach($user->id, ['passenger_id' => $user->id]);
+        
         return response()->json([
+            'message' => 'Trip created successfully',
             'user' => $user,
             'trip' => $trip,
     ], 201);
@@ -124,19 +132,40 @@ class TripController extends Controller
     }
     public function addPassenger($tripId, $passengerId)
     {
+        if (Auth::id() && Auth::id() != $passengerId) {
+        return response()->json(['message' => 'Unauthorized to reserve for another user'], 403);
+    }
         $trip = Trip::find($tripId);
         $user = User::find($passengerId);
-
+               
+     
         if (!$trip || !$user) {
             return response()->json(['message' => 'Trip or Passenger not found'], 404);
         }
+        if ($trip->passengers()->where('passenger_id', $passengerId)->exists()) {
+            return response()->json(['message' => 'Passenger already reserved'], 422);
+        }
+        if ($trip->available_seats <= 0) {
+            return response()->json(['message' => 'No seats available'], 422);
+        }
+        $driver = $trip->drivers()->first();
+        if (!$driver) {
+            return response()->json(['message' => 'No driver assigned to this trip'], 422);
+        }
+        $driverId = $driver->id;
+        $trip->available_seats -= 1;
+        $trip->passengers()->attach($passengerId, ['driver_id' => $driverId]);
+        $trip->save();
 
-        // Ajouter le passager au trajet
-        $trip->passengers()->attach($user->id);
-
-        return response()->json(['message' => 'Passenger added to trip'], 200);
+        return response()->json([
+            'message' => 'Reservation successful',
+            'trip_id' => $trip->id,
+            'passenger_id' => $passengerId,
+            'available_seats' => $trip->available_seats,
+            
+        ], 200);
     }
-//Test
+
     // Récupérer le conducteur d'un trajet
     public function getDriver($tripId)
     {
@@ -146,14 +175,19 @@ class TripController extends Controller
             return response()->json(['message' => 'Trip not found'], 404);
         }
 
-        $driver = $trip->driver;  // Récupérer le conducteur du trajet
+        // Get driver from trip_passenger table
+        $driver = $trip->drivers()->first();
 
         if (!$driver) {
             return response()->json(['message' => 'Driver not found'], 404);
         }
 
-        return response()->json($driver);
+        return response()->json([
+            'id' => $driver->id,
+            'name' => $driver->name,
+            // Add other driver fields as needed
+        ], 200);
     }
-    //test
+    
     
 }
