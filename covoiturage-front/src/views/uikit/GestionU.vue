@@ -314,4 +314,3 @@ fetchCurrentUser();
   transform: scale(1.05); /* Légère animation de zoom */
 }
 </style>
-//test

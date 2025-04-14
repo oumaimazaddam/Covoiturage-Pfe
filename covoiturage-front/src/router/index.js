@@ -2,10 +2,10 @@ import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/SearchTrips.vue';
 import PublishTrip from '../views/PublishTrip.vue';
-
+import Reservation from '../views/Reservation.vue';
 import Register from '@/components/auth/Register.vue';
 import Details from '../views/Details.vue';
-import ConfirmationPage from '../views/ConfirmationPage.vue';
+import DetailsTrip from '../views/DetailsTrip.vue';
 
 const router = createRouter({
     history: createWebHistory(),
@@ -15,11 +15,19 @@ const router = createRouter({
             component: Home,
             name: 'home'
         },
-       
+        { path: '/reservation/:tripId', name: 'reservation', component: Reservation},
         { path: '/register', name: 'Register', component: Register },
         { path: '/ajouter-trajet', component: PublishTrip },
         { path: '/details', component: Details },
-        { path: '/confirmation', component: ConfirmationPage },
+        {
+            path: '/detailsTrip/:id',
+            name: 'TripDetails',
+            component: DetailsTrip,
+            props: true,
+            meta: {
+              hideSidebar: true
+            }
+          },
         {
             path: '/dashboard',
             component: AppLayout,
