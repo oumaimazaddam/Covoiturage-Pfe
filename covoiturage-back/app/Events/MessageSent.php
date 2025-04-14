@@ -41,3 +41,4 @@ class MessageSent implements ShouldBroadcast
         return 'message.sent';
     }
 }
+//test

@@ -34,3 +34,4 @@ class NewMessageToast implements ShouldBroadcast
         return 'new-toast';
     }
 }
+//Test

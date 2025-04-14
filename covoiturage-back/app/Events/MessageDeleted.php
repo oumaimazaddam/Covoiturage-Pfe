@@ -27,3 +27,4 @@ class MessageDeleted implements ShouldBroadcast
         return new PrivateChannel('trip.' . $this->tripId);
     }
 }
+//test
