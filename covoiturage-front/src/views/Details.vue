@@ -5,7 +5,7 @@ export default {
   data() {
     return {
       trips: [],
-      unreadNotifications: 0,
+      unreadNotifications: 0, // valeur par défaut
     };
   },
   mounted() {
@@ -17,46 +17,22 @@ export default {
       try {
         const token = localStorage.getItem("access_token");
         const response = await axios.get("http://127.0.0.1:8000/api/trips", {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         this.trips = response.data;
       } catch (error) {
         console.error("Erreur lors de la récupération des trajets :", error);
       }
     },
-    async fetchTripDetails() {
-    const id = this.$route.params.id;
-    const token = localStorage.getItem("access_token");
-
-    try {
-        // Récupérer les détails du trajet
-        const tripResponse = await axios.get(`http://127.0.0.1:8000/api/trips/${id}`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        this.trip = tripResponse.data;
-
-        // Récupérer les informations du conducteur
-        const driverResponse = await axios.get(`http://127.0.0.1:8000/api/trips/${id}/driver`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        this.trip.driver = driverResponse.data; // Ajoute les données du conducteur
-    } catch (error) {
-        console.error("Erreur lors du chargement du trajet :", error);
-    }
-},
 
     async fetchNotifications() {
       try {
         const token = localStorage.getItem("access_token");
         if (token) {
-          // const response = await axios.get("http://127.0.0.1:8000/api/notifications", {
-          //   headers: { Authorization: `Bearer ${token}` }
-          // });
-          // this.unreadNotifications = response.data.unread_count;
+          const response = await axios.get("http://127.0.0.1:8000/api/notifications/unread-count", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          this.unreadNotifications = response.data.unread_count || 0;
         }
       } catch (error) {
         console.error("Erreur lors de la récupération des notifications :", error);
@@ -75,15 +51,16 @@ export default {
 
     getInitials(name) {
       if (!name) return '?';
-      return name
-        .split(' ')
+      return name.split(' ')
         .map(part => part[0])
         .join('')
         .toUpperCase()
         .substring(0, 2);
     },
 
-   
+    reserveTrip(trip) {
+      alert(`Réservation du trajet ${trip.departure} → ${trip.destination}`);
+    },
 
     voteTrip(tripId, voteType) {
       console.log(`Vote ${voteType} pour le trajet ${tripId}`);
@@ -92,9 +69,10 @@ export default {
     createNewTrip() {
       this.$router.push({ name: 'create-trip' });
     }
-  }
+  },
 };
 </script>
+
 <template>
   <div class="min-h-screen p-20 max-w-6xl mx-auto">
     <!-- En-tête avec bouton de notification -->
@@ -108,8 +86,7 @@ export default {
         class="relative p-2 text-gray-500 hover:text-blue-600 transition"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         <span v-if="unreadNotifications" class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
           {{ unreadNotifications }}
@@ -192,7 +169,7 @@ export default {
             <span v-else class="text-gray-500 text-sm">{{ getInitials(trip.driver.name) }}</span>
           </div>
           <div class="flex-1">
-            <p class="text-sm font-medium text-gray-700">{{ trip.driver?.name }}</p>
+            <p class="text-sm font-medium text-gray-700">{{ trip.driver.name }}</p>
             <p class="text-xs text-gray-500">Conducteur</p>
           </div>
         </div>
@@ -215,20 +192,27 @@ export default {
           </div>
           
           <div class="flex space-x-2">
-            <button
-              @click="reserveTrip(trip)"
-              class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition flex items-center"
-              :disabled="trip.available_seats <= 0"
-              :class="{ 'opacity-50 cursor-not-allowed': trip.available_seats <= 0 }"
+            <div 
+              v-if="trip.available_seats <= 0" 
+              class="bg-red-100 text-red-700 text-sm font-semibold px-4 py-2 rounded-lg flex items-center space-x-2"
             >
-              <span class="mr-2">✅</span> 
-              {{ trip.available_seats > 0 ? 'Réserver' : 'Complet' }}
+              <span>🚫</span>
+              <span>Ce trajet est complet</span>
+            </div>
+
+            <button
+              v-else
+              @click="reserveTrip(trip)"
+              class="flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white text-sm font-semibold rounded-lg shadow hover:from-blue-600 hover:to-blue-800 transition duration-200"
+            >
+              <span class="mr-2">✅</span> Réserver ma place
             </button>
+
             <router-link 
               :to="{ name: 'messenger', query: { tripId: trip.id } }"
-              class="border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition flex items-center"
+              class="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-700 text-white text-sm font-semibold rounded-lg shadow hover:from-green-600 hover:to-green-800 transition duration-200"
             >
-              <span class="mr-2">💬</span> Contacter
+              <span class="mr-2">💬</span> Contacter le conducteur
             </router-link>
           </div>
         </div>
@@ -249,8 +233,6 @@ export default {
     </div>
   </div>
 </template>
-
-
 
 <style scoped>
 .transition-all {

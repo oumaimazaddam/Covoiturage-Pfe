@@ -18,8 +18,11 @@ if (role_id === 1) {
                 { label: 'Gestion des droits des utilisateurs', icon: 'pi pi-user', to: '/uikit/utilisateur' },
                 { label: 'Utilisateurs En attent', icon: 'pi pi-users', to: '/uikit/list' },
                 { label: 'Gestion de Trajet', icon: 'pi pi-map', to: '/uikit/trajet', class: 'rotated-icon' },
-                { label: 'Feedbacks', icon: 'pi pi-comments', to: '/uikit/feedbacks' },
-                { label: 'Financement', icon: 'pi pi-wallet', to: '/uikit/financement' }
+                 { label: 'Reservation', icon: 'pi pi-book	', to: '/uikit/reservationL' },
+                { label: 'Feedbacks', icon: 'pi pi-comments', to: '/uikit/feedbacks' }
+               
+                
+
             ]
         },
         {

@@ -73,7 +73,7 @@ export default {
     },
 
     async submitReservation() {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       const userId = localStorage.getItem('user_id'); // Re-fetch for safety
 
       console.log('Submitting with Token:', token);

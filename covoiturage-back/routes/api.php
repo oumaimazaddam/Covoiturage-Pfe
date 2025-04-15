@@ -48,6 +48,8 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     //Reservation
     Route::post('trips/{tripId}/passenger/{passengerId}', [TripController::class, 'addPassenger']);
    Route::get('trips/{id}/driver', [TripController::class, 'getDriver']);
+   Route::delete('/trips/{tripId}/passengers/{passengerId}', [TripController::class, 'removePassenger']);
+   Route::get('/reservations', [TripController::class, 'getReservations']);
    //Profile
    Route::get('show-profile/{id}', [ProfileController::class, 'show']);   
    Route::put('update-profile/{id}', [ProfileController::class, 'update']);  

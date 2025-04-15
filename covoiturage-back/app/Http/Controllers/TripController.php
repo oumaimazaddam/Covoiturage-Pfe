@@ -188,6 +188,62 @@ class TripController extends Controller
             // Add other driver fields as needed
         ], 200);
     }
+    public function removePassenger($tripId, $passengerId)
+{
+    // Check if the authenticated user is the passenger trying to cancel
+    if (Auth::id() && Auth::id() != $passengerId) {
+        return response()->json(['message' => 'Unauthorized to cancel reservation for another user'], 403);
+    }
+
+    $trip = Trip::find($tripId);
+    $user = User::find($passengerId);
+
+    // Check if trip and user exist
+    if (!$trip || !$user) {
+        return response()->json(['message' => 'Trip or Passenger not found'], 404);
+    }
+
+    // Check if the passenger is actually reserved for the trip
+    if (!$trip->passengers()->where('passenger_id', $passengerId)->exists()) {
+        return response()->json(['message' => 'Passenger not reserved for this trip'], 422);
+    }
+
+    // Remove the passenger from the trip
+    $trip->passengers()->detach($passengerId);
+
+    // Increment available seats
+    $trip->available_seats += 1;
+    $trip->save();
+
+    return response()->json([
+        'message' => 'Reservation cancelled successfully',
+        'trip_id' => $trip->id,
+        'passenger_id' => $passengerId,
+        'available_seats' => $trip->available_seats,
+    ], 200);
+}
+public function getReservations()
+{
+    $reservations = Trip::has('passengers')
+        ->with(['passengers', 'drivers'])
+        ->get()
+        ->flatMap(function ($trip) {
+            return $trip->passengers->map(function ($passenger) use ($trip) {
+                return [
+                    'trip_id' => $trip->id,
+                    'departure' => $trip->departure,
+                    'destination' => $trip->destination,
+                    'trip_date' => $trip->trip_date,
+                    'departure_time' => $trip->departure_time,
+                    'price' => $trip->price,
+                    'passenger_name' => $passenger->name,
+                    'driver_name' => $trip->drivers->first()->name ?? 'N/A',
+                ];
+            });
+        });
+
+    return response()->json($reservations);
+}
     
     
 }
