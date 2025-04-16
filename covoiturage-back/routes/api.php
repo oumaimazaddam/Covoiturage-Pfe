@@ -50,6 +50,8 @@ Route::middleware([JwtMiddleware::class])->group(function () {
    Route::get('trips/{id}/driver', [TripController::class, 'getDriver']);
    Route::delete('/trips/{tripId}/passengers/{passengerId}', [TripController::class, 'removePassenger']);
    Route::get('/reservations', [TripController::class, 'getReservations']);
+   Route::get('/reservations/passenger/{passengerName}', [TripController::class, 'getReservationsByPassenger']);
+
    //Profile
    Route::get('show-profile/{id}', [ProfileController::class, 'show']);   
    Route::put('update-profile/{id}', [ProfileController::class, 'update']);  

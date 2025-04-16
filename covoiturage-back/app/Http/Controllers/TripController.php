@@ -245,5 +245,31 @@ public function getReservations()
     return response()->json($reservations);
 }
     
-    
+public function getReservationsByPassenger($passengerName)
+{
+    $Reservations = Trip::has('passengers')
+        ->with(['passengers' => function ($query) use ($passengerName) {
+            $query->where('name', $passengerName);
+        }, 'drivers'])
+        ->whereHas('passengers', function ($query) use ($passengerName) {
+            $query->where('name', $passengerName);
+        })
+        ->get()
+        ->flatMap(function ($trip) {
+            return $trip->passengers->map(function ($passenger) use ($trip) {
+                return [
+                    'trip_id' => $trip->id,
+                    'departure' => $trip->departure,
+                    'destination' => $trip->destination,
+                    'trip_date' => $trip->trip_date,
+                    'departure_time' => $trip->departure_time,
+                    'price' => $trip->price,
+                    'passenger_name' => $passenger->name,
+                    'driver_name' => $trip->drivers->first()->name ?? 'N/A',
+                ];
+            });
+        });
+
+    return response()->json($Reservations);
+}   
 }
