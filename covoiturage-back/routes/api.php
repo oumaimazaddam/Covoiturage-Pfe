@@ -44,7 +44,8 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::delete('trips/{id}', [TripController::class, 'destroy']);
     Route::get('show-trip/{id}', [TripController::class, 'show']);
     Route::get('/search-trip', [TripController::class, 'search']);
-    Route::get('trips', [TripController::class, 'index']); 
+    Route::get('trips', [TripController::class, 'index']);
+    Route::get('/all-trips', [TripController::class, 'allTrips']); 
     //Reservation
     Route::post('trips/{tripId}/passenger/{passengerId}', [TripController::class, 'addPassenger']);
    Route::get('trips/{id}/driver', [TripController::class, 'getDriver']);
