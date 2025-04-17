@@ -12,7 +12,11 @@ class TripController extends Controller
 
     public function index()
     {
-        $trips = Trip::all();
+        $user = Auth::user(); 
+        $trips = Trip::whereHas('drivers', function ($query) use ($user) {
+            $query->where('driver_id', $user->id); 
+        })->get();
+    
         return response()->json($trips);
     }
     public function show($id)
@@ -245,14 +249,14 @@ public function getReservations()
     return response()->json($reservations);
 }
     
-public function getReservationsByPassenger($passengerName)
+public function getReservationsByPassenger($passengerId)
 {
-    $Reservations = Trip::has('passengers')
-        ->with(['passengers' => function ($query) use ($passengerName) {
-            $query->where('name', $passengerName);
+    $reservations = Trip::has('passengers')
+        ->with(['passengers' => function ($query) use ($passengerId) {
+            $query->where('passenger_id', $passengerId);
         }, 'drivers'])
-        ->whereHas('passengers', function ($query) use ($passengerName) {
-            $query->where('name', $passengerName);
+        ->whereHas('passengers', function ($query) use ($passengerId) {
+            $query->where('passenger_id', $passengerId);
         })
         ->get()
         ->flatMap(function ($trip) {
@@ -270,6 +274,43 @@ public function getReservationsByPassenger($passengerName)
             });
         });
 
-    return response()->json($Reservations);
-}//test   
+    return response()->json($reservations);
+}
+public function getCancelledAnnulerReservations()
+{
+    $reservations = Trip::with(['passengers', 'drivers'])
+        ->get()
+        ->groupBy(function ($reservation) {
+            return date('Y', strtotime($reservation->trip_date));
+        })
+        ->map(function ($reservations) {
+            return [
+                'reservations' => $reservations->map(function ($reservation) {
+                    // Récupère le premier passager et conducteur (si plusieurs)
+                    $passenger = $reservation->passengers->first();
+                    $driver = $reservation->drivers->first();
+
+                    return [
+                        'trip_id' => $reservation->id, // Utilisez 'id' si 'trip_id' n'existe pas
+                        'departure' => $reservation->departure,
+                        'destination' => $reservation->destination,
+                        'trip_date' => $reservation->trip_date,
+                        'departure_time' => $reservation->departure_time,
+                        'price' => $reservation->price,
+                        'passenger_name' => $passenger->name ?? 'N/A', // Premier passager
+                        'driver_name' => $driver->name ?? 'N/A', // Premier conducteur
+                        'cancelled_at' => $reservation->cancelled_at,
+                        'status' => 'Annulé'
+
+
+                    ];
+                })->values(),
+                'total_cancelled' => $reservations->count(),
+            ];
+        })
+        ->values();
+
+    return response()->json($reservations);
+}
+
 }

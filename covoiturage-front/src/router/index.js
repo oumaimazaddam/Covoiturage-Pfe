@@ -58,11 +58,7 @@ const router = createRouter({
                     name: 'utilisateur',
                     component: () => import('@/views/uikit/GestionU.vue')
                 },
-                {
-                    path: '/uikit/list',
-                    name: 'list',
-                    component: () => import('@/views/uikit/ListDoc.vue')
-                },
+               
                 {
                     path: '/uikit/list',
                     name: 'list',
@@ -74,57 +70,21 @@ const router = createRouter({
                     component: () => import('@/views/uikit/TrajetG.vue')
                 },
 
-                {
-                    path: '/uikit/overlay',
-                    name: 'overlay',
-                    component: () => import('@/views/uikit/OverlayDoc.vue')
-                },
-                {
-                    path: '/uikit/media',
-                    name: 'media',
-                    component: () => import('@/views/uikit/MediaDoc.vue')
-                },
+                
                 {
                     path: '/messenger',
                     name: 'messenger',
                     component: () => import('@/views/Messenger.vue'),
                      // Automatically pass route params as props
                 },
+                
                 {
-                    path: '/uikit/file',
-                    name: 'file',
-                    component: () => import('@/views/uikit/FileDoc.vue')
+                    path: '/uikit/reservationL',
+                    name: 'reservationL',
+                    component: () => import('@/views/uikit/ListeR.vue')
                 },
-                {
-                    path: '/uikit/menu',
-                    name: 'menu',
-                    component: () => import('@/views/uikit/MenuDoc.vue')
-                },
-                {
-                    path: '/uikit/charts',
-                    name: 'charts',
-                    component: () => import('@/views/uikit/ChartDoc.vue')
-                },
-                {
-                    path: '/uikit/misc',
-                    name: 'misc',
-                    component: () => import('@/views/uikit/MiscDoc.vue')
-                },
-                {
-                    path: '/uikit/timeline',
-                    name: 'timeline',
-                    component: () => import('@/views/uikit/TimelineDoc.vue')
-                },
-                {
-                    path: '/pages/empty',
-                    name: 'empty',
-                    component: () => import('@/views/pages/Empty.vue')
-                },
-                {
-                    path: '/pages/crud',
-                    name: 'crud',
-                    component: () => import('@/views/pages/Crud.vue')
-                },
+               
+               
                 {
                     path: '/documentation',
                     name: 'documentation',
@@ -132,11 +92,7 @@ const router = createRouter({
                 }
             ]
         },
-        {
-            path: '/landing',
-            name: 'landing',
-            component: () => import('@/views/pages/Landing.vue')
-        },
+       
         {
             path: '/logout',
             name: 'logout',
