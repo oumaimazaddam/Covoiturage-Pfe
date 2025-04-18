@@ -20,10 +20,10 @@ class TripController extends Controller
         return response()->json($trips);
     }
     public function allTrips()
-{
+     {
     $trips = Trip::all();
     return response()->json($trips);
-}
+    }
     public function show($id)
     {
         $trip = Trip::with('drivers')->findOrFail($id);
@@ -38,6 +38,14 @@ class TripController extends Controller
             ] : null,
             'has_driver' => !is_null($driver),
         ]);
+    }
+    public function shows($id)
+    {
+        $trip = Trip::find($id);
+        if (!$trip) {
+            return response()->json(['message' => 'Trip not found'], 404);
+        }
+        return response()->json($trip);
     }
 
     public function store(Request $request)
