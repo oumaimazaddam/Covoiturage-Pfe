@@ -16,7 +16,7 @@ export default {
     async fetchTrips() {
       try {
         const token = localStorage.getItem("access_token");
-        const response = await axios.get("http://127.0.0.1:8000/api/trips", {
+        const response = await axios.get("http://127.0.0.1:8000/api/all-trips", {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         this.trips = response.data;

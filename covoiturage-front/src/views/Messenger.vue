@@ -32,10 +32,6 @@ export default {
     const toast = useToast();
     const effectiveTripId = computed(() => props.tripId || route.query.tripId);
 
-    // Notification-related state
-    const showNotifications = ref(false);
-    const notifications = ref([]); // Store all notifications
-
     const fetchMessages = async () => {
       if (!effectiveTripId.value) return;
       await chatStore.fetchMessages(effectiveTripId.value);
@@ -49,9 +45,7 @@ export default {
         newMessage.value = '';
       } catch (error) {
         console.error('Failed to send message:', error);
-        const errorMsg = 'Failed to send message';
-        toast.error(errorMsg);
-        notifications.value.push({ type: 'error', message: errorMsg, timestamp: new Date() });
+        toast.error('Failed to send message');
       }
     };
 
@@ -60,14 +54,8 @@ export default {
       if (!tripIdNum) return;
       try {
         await chatStore.deleteMessage(messageId, tripIdNum);
-        const successMsg = 'Message deleted';
-        toast.success(successMsg);
-        notifications.value.push({ type: 'success', message: successMsg, timestamp: new Date() });
       } catch (error) {
         console.error('Failed to delete message:', error);
-        const errorMsg = 'Failed to delete message';
-        toast.error(errorMsg);
-        notifications.value.push({ type: 'error', message: errorMsg, timestamp: new Date() });
       }
     };
 
@@ -92,24 +80,11 @@ export default {
       showMenu.value = !showMenu.value;
     };
 
-    const toggleNotifications = () => {
-      showNotifications.value = !showNotifications.value;
-    };
-
     const handleClickOutside = (event) => {
       const menu = document.querySelector('.dropdown-menu');
       const button = document.querySelector('.info-btn');
-      const notificationMenu = document.querySelector('.notification-dropdown');
-      const notificationBtn = document.querySelector('.notification-btn');
       if (menu && !menu.contains(event.target) && !button.contains(event.target)) {
         showMenu.value = false;
-      }
-      if (
-        notificationMenu &&
-        !notificationMenu.contains(event.target) &&
-        !notificationBtn.contains(event.target)
-      ) {
-        showNotifications.value = false;
       }
     };
 
@@ -130,15 +105,8 @@ export default {
 
     watch(
       () => chatStore.messages,
+      // eslint-disable-next-line no-unused-vars
       async (newMessages, oldMessages) => {
-        if (newMessages.length > oldMessages.length) {
-          const latestMessage = newMessages[newMessages.length - 1];
-          if (latestMessage.user_id !== parseInt(userId.value)) {
-            const newMsg = `New message from ${latestMessage.user.name}: ${latestMessage.content}`;
-            toast.info(newMsg);
-            notifications.value.push({ type: 'info', message: newMsg, timestamp: new Date() });
-          }
-        }
         await nextTick();
         const messagesContainer = document.querySelector('.messages');
         if (messagesContainer) {
@@ -164,9 +132,6 @@ export default {
       otherUserInfo,
       closeUserInfo,
       effectiveTripId,
-      showNotifications,
-      toggleNotifications,
-      notifications,
     };
   },
 };
@@ -175,24 +140,6 @@ export default {
 <template>
   <div class="chat-container">
     <h2>Chat de trajet {{ effectiveTripId }}</h2>
-
-    <!-- Notification Icon and Dropdown -->
-    <div class="notification-wrapper">
-      <button @click="toggleNotifications" class="notification-btn">
-        🔔
-        <span v-if="notifications.length" class="notification-badge">{{ notifications.length }}</span>
-      </button>
-      <div v-if="showNotifications" class="notification-dropdown">
-        <h3>Notifications</h3>
-        <ul v-if="notifications.length" class="notification-list">
-          <li v-for="(notif, index) in notifications" :key="index" :class="notif.type">
-            <span>{{ notif.message }}</span>
-            <small>{{ new Date(notif.timestamp).toLocaleTimeString() }}</small>
-          </li>
-        </ul>
-        <p v-else>Aucune notification</p>
-      </div>
-    </div>
 
     <!-- Carte infos utilisateur -->
     <div v-if="otherUserInfo" class="user-info-card">
@@ -269,7 +216,7 @@ export default {
             {{ emoji }}
           </button>
         </div>
-      <div class="relative">
+        <div class="relative">
           <button @click="toggleMenu" class="info-btn">⋮</button>
           <div v-if="showMenu" class="dropdown-menu">
             <button @click="showUserInfo">À propos</button>
@@ -292,101 +239,8 @@ export default {
   flex-direction: column;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  position: relative; /* Added for positioning notification wrapper */
 }
 
-/* Notification Styles */
-.notification-wrapper {
-  position: absolute;
-  top: 10px;
-  right: 20px;
-}
-
-.notification-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  position: relative;
-  transition: color 0.3s ease;
-}
-
-.notification-btn:hover {
-  color: #34b7f1;
-}
-
-.notification-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #ff6b6b;
-  color: white;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-}
-
-.notification-dropdown {
-  position: absolute;
-  top: 40px;
-  right: 0;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-  width: 300px;
-  max-height: 400px;
-  overflow-y: auto;
-  z-index: 1000;
-  padding: 10px;
-}
-
-.notification-dropdown h3 {
-  margin: 0 0 10px 0;
-  font-size: 16px;
-  color: #333;
-}
-
-.notification-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.notification-list li {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-  font-size: 14px;
-}
-
-.notification-list li:last-child {
-  border-bottom: none;
-}
-
-.notification-list li.info {
-  color: #34b7f1;
-}
-
-.notification-list li.success {
-  color: #28a745;
-}
-
-.notification-list li.error {
-  color: #dc3545;
-}
-
-.notification-list small {
-  display: block;
-  color: #888;
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-/* Existing Styles */
 .chat-box {
   display: flex;
   flex-direction: column;
