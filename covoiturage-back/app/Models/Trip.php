@@ -17,8 +17,11 @@ class Trip extends Model
         'price',
         'instant_booking',
         'available_seats',
+        'status',
     ];
-
+    protected $attributes = [
+        'status' => 'active',
+    ];
 
     public function passengers()
     {
@@ -37,6 +40,17 @@ class Trip extends Model
         return $this->belongsTo(User::class,'driver_id');
     }
     
-   
-    
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+    protected static function boot()
+    {
+        parent::boot();
+        static::saving(function ($trip) {
+            if ($trip->available_seats == 0) {
+                $trip->status = 'completed';
+            }
+        });
+    }
 }

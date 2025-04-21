@@ -9,6 +9,7 @@ use App\Http\Controllers\TripController;
 use Illuminate\Support\Facades\Broadcast; // Add this line
 use App\Http\Controllers\ChatController;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Http\Controllers\ReviewController;
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -52,7 +53,6 @@ Route::middleware([JwtMiddleware::class])->group(function () {
    Route::get('trips/{id}/driver', [TripController::class, 'getDriver']);
    Route::delete('/trips/{tripId}/passengers/{passengerId}', [TripController::class, 'removePassenger']);
    Route::get('/reservations', [TripController::class, 'getReservations']);
-   Route::get('/cancelled-annuler-reservations', [TripController::class, 'getCancelledAnnulerReservations']);
    Route::get('/reservations/passenger/{passengerId}', [TripController::class, 'getReservationsByPassenger']);
 
 //test
@@ -66,6 +66,11 @@ Route::middleware([JwtMiddleware::class])->group(function () {
    Route::post('/create-message', [ChatController::class, 'sendMessage']);
    Route::delete('/chat/messages/{messageId}', [ChatController::class, 'deleteMessage']);
    //Route::get('/messages/{userId}', [ChatController::class, 'index']);
+
+//Reviews
+Route::post('/reviews', [ReviewController::class, 'store']); // Submit a review
+Route::get('/drivers/{driverId}/reviews', [ReviewController::class, 'index']);
+Route::get('/all-reviews', [ReviewController::class, 'indexAdmin']);
 //
 Route::post('/broadcasting/auth', function (Request $request) {
     try {

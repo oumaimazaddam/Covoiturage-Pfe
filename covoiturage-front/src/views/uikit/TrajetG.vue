@@ -1,13 +1,14 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
 import { useRouter } from 'vue-router';
+import axios from 'axios';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+
 const router = useRouter();
 
 const trips = ref([]);
-
 const loadingTrips = ref(true);
-
 const userRole = ref(null);
 const isAdmin = ref(false);
 
@@ -45,7 +46,7 @@ const fetchDriverName = async (tripId) => {
             headers: { Authorization: `Bearer ${token}` }
         });
         console.log("Réponse API conducteur:", response.data);
-        return response.data.name || "Inconnu"; // Adjust 'name' to match the actual field in the response
+        return response.data.name || "Inconnu";
     } catch (error) {
         console.warn("Conducteur non trouvé:", error.response?.data?.message || error.message);
         return "Inconnu";
@@ -60,16 +61,17 @@ const fetchTrips = async () => {
             throw new Error("Aucun token trouvé. Veuillez vous reconnecter.");
         }
 
-        const response = await axios.get("http://localhost:8000/api/trips", {
+        const response = await axios.get("http://localhost:8000/api/all-trips", {
             headers: { Authorization: `Bearer ${token}` }
         });
         console.log("Données reçues :", response.data);
 
-        // Enrich trips with driver names
         const enrichedTrips = await Promise.all(
             response.data.map(async (trip) => {
                 const driverName = await fetchDriverName(trip.id);
-                return { ...trip, driver_name: driverName };
+                // Ensure status is 'completed' if available_seats is 0
+                const status = trip.available_seats === 0 ? 'completed' : trip.status;
+                return { ...trip, driver_name: driverName, status };
             })
         );
 
@@ -81,19 +83,13 @@ const fetchTrips = async () => {
     }
 };
 
-// Fetch reserved trips
-
-
-// On component mount
 onMounted(async () => {
     await fetchUserRole();
     if (isAdmin.value) {
         fetchTrips();
-       
     }
 });
 
-// Format time
 const formatTime = (value) => {
     if (!value) return "Aucune heure";
     if (/^\d{2}:\d{2}$/.test(value)) {
@@ -107,6 +103,20 @@ const formatTime = (value) => {
         });
     } catch (error) {
         return "Heure invalide";
+    }
+};
+
+// Format status
+const formatStatus = (status) => {
+    switch (status) {
+        case 'completed':
+            return 'Terminé';
+        case 'active':
+            return 'Actif';
+        case 'canceled':
+            return 'Annulé';
+        default:
+            return 'Inconnu';
     }
 };
 </script>
@@ -133,6 +143,29 @@ const formatTime = (value) => {
                     {{ slotProps.data.instant_booking === 0 ? 'Trajet en attente' : 'Trajet confirmé' }}
                 </template>
             </Column>
+          <Column field="status" header="Statut" sortable>
+                <template #body="{ data }">
+                    <Button
+                        :label="formatStatus(data.status)"
+                        :class="{
+                            'bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark transition': data.status === 'completed',
+                            'p-button-outlined p-button-info': data.status === 'active',
+                            'p-button-outlined p-button-danger': data.status === 'canceled'
+                        }"
+                        :severity="data.status === 'completed' ? 'success' : data.status === 'active' ? 'info' : 'danger'"
+                        outlined
+                    />
+                </template>
+            </Column>
         </DataTable>
     </div>
 </template>
+
+<style scoped>
+.card {
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+</style>

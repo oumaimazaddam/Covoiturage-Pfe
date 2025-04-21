@@ -80,6 +80,7 @@ class TripController extends Controller
             'price' =>$request->get('price'),
             'instant_booking' =>$request->get('instant_booking'),
             'available_seats' =>$request->get('available_seats'),
+            'status' => 'active',
           
         ]);
        
@@ -104,9 +105,10 @@ class TripController extends Controller
             'departure_time' => 'nullable|date_format:H:i',
             'estimate_arrival_time' => 'nullable|date_format:H:i',
             'price' => 'nullable|numeric',
-            
-           'instant_booking' => 'required|boolean',
+
+            'instant_booking' => 'required|boolean',
             'available_seats' => 'nullable|integer|min:1',
+            'status' => 'nullable|in:active,completed,canceled',
         ]);
 
         $trip->update($validatedData);
@@ -179,6 +181,7 @@ class TripController extends Controller
             'trip_id' => $trip->id,
             'passenger_id' => $passengerId,
             'available_seats' => $trip->available_seats,
+            'status' => $trip->status,
             
         ], 200);
     }
@@ -230,6 +233,7 @@ class TripController extends Controller
 
     // Increment available seats
     $trip->available_seats += 1;
+    $trip->status = 'active'; // Revert to active if seats become available
     $trip->save();
 
     return response()->json([
@@ -255,6 +259,7 @@ public function getReservations()
                     'price' => $trip->price,
                     'passenger_name' => $passenger->name,
                     'driver_name' => $trip->drivers->first()->name ?? 'N/A',
+                    'status' => $trip->status,
                 ];
             });
         });
@@ -283,45 +288,10 @@ public function getReservationsByPassenger($passengerId)
                     'price' => $trip->price,
                     'passenger_name' => $passenger->name,
                     'driver_name' => $trip->drivers->first()->name ?? 'N/A',
+                    'status' => $trip->status,
                 ];
             });
         });
-
-    return response()->json($reservations);
-}
-public function getCancelledAnnulerReservations()
-{
-    $reservations = Trip::with(['passengers', 'drivers'])
-        ->get()
-        ->groupBy(function ($reservation) {
-            return date('Y', strtotime($reservation->trip_date));
-        })
-        ->map(function ($reservations) {
-            return [
-                'reservations' => $reservations->map(function ($reservation) {
-                    // Récupère le premier passager et conducteur (si plusieurs)
-                    $passenger = $reservation->passengers->first();
-                    $driver = $reservation->drivers->first();
-
-                    return [
-                        'trip_id' => $reservation->id, // Utilisez 'id' si 'trip_id' n'existe pas
-                        'departure' => $reservation->departure,
-                        'destination' => $reservation->destination,
-                        'trip_date' => $reservation->trip_date,
-                        'departure_time' => $reservation->departure_time,
-                        'price' => $reservation->price,
-                        'passenger_name' => $passenger->name ?? 'N/A', // Premier passager
-                        'driver_name' => $driver->name ?? 'N/A', // Premier conducteur
-                        'cancelled_at' => $reservation->cancelled_at,
-                        'status' => 'Annulé'
-
-
-                    ];
-                })->values(),
-                'total_cancelled' => $reservations->count(),
-            ];
-        })
-        ->values();
 
     return response()->json($reservations);
 }
