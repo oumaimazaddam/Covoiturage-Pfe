@@ -17,7 +17,7 @@ export default {
   computed: {
     todayDate() {
       return new Date().toISOString().split("T")[0];
-    }
+    },
   },
   methods: {
     async fetchTrips() {
@@ -44,6 +44,24 @@ export default {
         });
 
         this.trips = response.data;
+
+        // Fetch driver details for each trip
+        await Promise.all(
+          this.trips.map(async (trip) => {
+            try {
+              const driverResponse = await axios.get(`http://127.0.0.1:8000/api/trips/${trip.id}/driver`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              // Attach driver details to the trip object
+              trip.driver_name = driverResponse.data.name || "Non spécifié";
+              trip.driver_photo = driverResponse.data.photo_profile || "https://via.placeholder.com/80";
+            } catch (driverError) {
+              console.warn(`Driver not found for trip ${trip.id}:`, driverError.response?.data?.message || driverError.message);
+              trip.driver_name = "Non spécifié";
+              trip.driver_photo = "https://via.placeholder.com/80";
+            }
+          })
+        );
       } catch (error) {
         console.error("❌ Erreur lors du chargement des trajets:", error);
         alert(`Une erreur est survenue: ${error.response?.data?.message || error.message}`);
@@ -62,7 +80,7 @@ export default {
   },
   mounted() {
     this.fetchTrips(); // Charger tous les trajets au début
-  }
+  },
 };
 </script>
 
@@ -152,11 +170,10 @@ export default {
               </div>
 
               <div class="flex items-center pt-4 border-t border-gray-100">
-                <img v-if="trip.driver_photo" :src="trip.driver_photo" 
-                  class="w-10 h-10 rounded-full object-cover mr-3 border-2 border-blue-200" />
+               
                 <div>
                   <p class="text-sm font-medium text-gray-700">Conducteur</p>
-                  <p class="text-sm text-gray-500">{{ trip.driver_name || 'Non spécifié' }}</p>
+                  <p class="text-sm text-gray-500">{{ trip.driver_name }}</p>
                 </div>
               </div>
             </div>
