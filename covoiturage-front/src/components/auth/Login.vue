@@ -35,7 +35,7 @@ const submitLogin = async () => {
 
         // Redirection selon le rôle
         if (user.role_id === 2) {
-            router.push('/ajouter-trajet'); // Driver → Publier un trajet
+            router.push('/trajetH'); // Driver → Publier un trajet
         } else if (user.role_id === 1) {
             router.push('/dashboard'); // Admin → Dashboard
         } else if (user.role_id === 3) {
@@ -54,7 +54,7 @@ const submitLogin = async () => {
 
 <template>
     <div> 
-    <FloatingConfigurator />
+    
     <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
         <div class="flex flex-col items-center justify-center">
             <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">

@@ -25,34 +25,25 @@ export default {
       this.searchPerformed = true;
 
       try {
-        const token = localStorage.getItem("access_token");
-        if (!token) {
-          alert("Vous devez être connecté pour rechercher un trajet.");
-          this.loading = false;
-          this.$router.push('/login');
-          return;
-        }
-
+        // Créer les paramètres de recherche uniquement si des valeurs sont fournies
         const params = {};
         if (this.search.departure.trim()) params.departure = this.search.departure.trim();
         if (this.search.destination.trim()) params.destination = this.search.destination.trim();
         if (this.search.trip_date) params.trip_date = this.search.trip_date;
 
+        // Requête API pour récupérer les trajets (sans authentification)
         const response = await axios.get("http://127.0.0.1:8000/api/search-trip", {
-          headers: { Authorization: `Bearer ${token}` },
           params,
         });
 
         this.trips = response.data;
 
-        // Fetch driver details for each trip
+        // Récupérer les détails du conducteur pour chaque trajet
         await Promise.all(
           this.trips.map(async (trip) => {
             try {
-              const driverResponse = await axios.get(`http://127.0.0.1:8000/api/trips/${trip.id}/driver`, {
-                headers: { Authorization: `Bearer ${token}` },
-              });
-              // Attach driver details to the trip object
+              // Requête pour les détails du conducteur (sans authentification)
+              const driverResponse = await axios.get(`http://127.0.0.1:8000/api/trips/${trip.id}/driver`);
               trip.driver_name = driverResponse.data.name || "Non spécifié";
               trip.driver_photo = driverResponse.data.photo_profile || "https://via.placeholder.com/80";
             } catch (driverError) {
@@ -79,7 +70,8 @@ export default {
     },
   },
   mounted() {
-    this.fetchTrips(); // Charger tous les trajets au début
+    // Charger tous les trajets disponibles au démarrage
+    this.fetchTrips();
   },
 };
 </script>
@@ -90,7 +82,7 @@ export default {
     <div class="sticky top-1 z-50">
       <div class="h-[300px] bg-cover bg-center brightness-70 relative"
         style="background-image: url('https://images.unsplash.com/photo-1686199948265-ddc4ebb1cc92?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
-        <h2 class="text-4xl font-bold text-white text-center pt-20 drop-shadow-lg">Où voulez-vous aller ?</h2>
+        <h2 class="text-4xl font-bold text-white text-center pt-20 drop-shadow-lg">Où voulez-vous aller </h2>
 
         <!-- Formulaire -->
         <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 w-[90%] max-w-5xl bg-white p-2 rounded-full shadow-lg flex items-center justify-between space-x-5 z-50">
@@ -170,7 +162,6 @@ export default {
               </div>
 
               <div class="flex items-center pt-4 border-t border-gray-100">
-               
                 <div>
                   <p class="text-sm font-medium text-gray-700">Conducteur</p>
                   <p class="text-sm text-gray-500">{{ trip.driver_name }}</p>

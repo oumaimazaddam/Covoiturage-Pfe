@@ -64,7 +64,7 @@ const logout = () => {
   localStorage.removeItem('access_token');
   isAuthenticated.value = false;
   menuOpen.value = false;
-  router.push('/');
+  router.push('/logout');
 };
 
 onMounted(() => {
@@ -82,7 +82,7 @@ onMounted(() => {
       <button class="layout-menu-button layout-topbar-action" @click="toggleMenu">
         <i class="pi pi-bars"></i>
       </button>
-      <router-link to="/" class="layout-topbar-logo">
+      <Router-link to="/" class="layout-topbar-logo">
         <svg><!-- Votre SVG logo --></svg>
         <span>Carpool</span>
       </router-link>
@@ -99,17 +99,32 @@ onMounted(() => {
       <router-link to="/details" class="text-color hover:text-primary transition-colors">
         TRAJETS
       </router-link>
+      <!-- Bouton Historique des trajets pour role_id=2 -->
+      <router-link 
+        v-if="role_id === 2"
+        to="/trajetH"
+        class="text-color hover:text-primary transition-colors"
+      >
+        HISTORIQUE DES TRAJETS
+      </router-link>
+
+      <!-- Bouton Historique des réservations pour role_id=3 -->
+      <router-link 
+        v-if="role_id === 3"
+        to="/reservation-history"
+        class="text-color hover:text-primary transition-colors"
+      >
+        HISTORIQUE DES RÉSERVATIONS
+      </router-link>
+      <!-- Lien Profil pour les utilisateurs authentifiés avec role_id 2 ou 3 -->
      
       <button 
-      @click="handlePublish"
-      class="mr-4 bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark transition"
-    >
-      PUBLIER UN TRAJET
-    </button>
+        @click="handlePublish"
+        class="mr-4 bg-primary text-white font-bold py-2 px-4 rounded-lg hover:bg-primary-dark transition"
+      >
+        PUBLIER UN TRAJET
+      </button>
     </div>
-
-    <!-- Bouton "PUBLIER UN TRAJET" -->
-    
 
     <div class="layout-topbar-actions">
       <div class="layout-config-menu">
@@ -135,13 +150,14 @@ onMounted(() => {
           <div v-if="menuOpen" class="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-lg py-2 z-50">
             <router-link 
               v-if="isAuthenticated" 
-              to="/profile" 
+              to="/uikit/profile" 
               class="block px-4 py-2 text-color hover:bg-surface-100"
               @click="closeMenu"
             >
               Profil
             </router-link>
             <button 
+              to="logout" 
               v-if="isAuthenticated"
               @click="logout"
               class="block w-full text-left px-4 py-2 text-color hover:bg-surface-100"
