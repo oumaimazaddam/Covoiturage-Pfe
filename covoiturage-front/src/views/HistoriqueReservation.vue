@@ -157,7 +157,7 @@ export default {
             Vous n'avez actuellement aucun trajet réservé. Réservez un trajet pour commencer !
           </p>
           <router-link
-            to="/search-trips"
+            to="/"
             class="p-button p-button-primary p-button-raised inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 rounded-lg bg-primary-500 text-white hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 transition-all duration-200 hover:scale-105"
             aria-label="Trouver un trajet"
           >

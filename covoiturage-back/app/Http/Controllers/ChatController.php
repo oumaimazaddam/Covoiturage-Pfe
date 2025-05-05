@@ -45,7 +45,7 @@ class ChatController extends Controller
 
         // Pass the full $message object, not just $message->content
         event(new MessageSent($message, $user->id, $request->trip_id));
-        //
+        
         $recipient = Message::where('trip_id', $request->trip_id)
         ->where('user_id', '!=', $user->id)
         ->first()

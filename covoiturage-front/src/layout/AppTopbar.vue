@@ -31,6 +31,7 @@ const handlePublish = async () => {
     alert("Vous devez être connecté pour publier un trajet !");
     router.push('/login');
     return;
+    
   }
 
   try {
