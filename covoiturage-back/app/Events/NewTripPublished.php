@@ -14,10 +14,12 @@ class NewTripPublished implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $trip;
+    public $driverName;
 
-    public function __construct(Trip $trip)
+    public function __construct(Trip $trip, string $driverName)
     {
         $this->trip = $trip;
+        $this->driverName = $driverName;
     }
 
     public function broadcastOn()
@@ -39,7 +41,12 @@ class NewTripPublished implements ShouldBroadcast
                 'destination' => $this->trip->destination,
                 'trip_date' => $this->trip->trip_date,
                 'departure_time' => $this->trip->departure_time,
-                'driver_name' => $this->trip->driver_name // Ensure this is provided
+                'estimate_arrival_time' => $this->trip->estimate_arrival_time,
+                'price' => $this->trip->price,
+                'available_seats' => $this->trip->available_seats,
+                'instant_booking' => $this->trip->instant_booking,
+                'status' => $this->trip->status,
+                'driver_name' => $this->driverName,
             ]
         ];
     }

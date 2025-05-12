@@ -25,6 +25,11 @@ Route::delete('user/{id}', [JWTAuthController::class, 'deleteUser']);
 Route::put('user/{id}', [JWTAuthController::class, 'updateUser']);
 Route::post('/admin/activate-user/{id}', [JWTAuthController::class, 'activateUser']);
 
+
+Route::get('/search-trip', [TripController::class, 'search']);
+Route::get('trips', [TripController::class, 'index']);
+Route::get('/all-trips', [TripController::class, 'allTrips']); 
+Route::get('shows-trip/{id}', [TripController::class, 'shows']);
 //
 Route::get('trips', [TripController::class, 'index']); 
 Route::get('trips/{id}', [TripController::class, 'show']);
@@ -44,10 +49,11 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::put('trips/{id}', [TripController::class, 'update']);
     Route::delete('trips/{id}', [TripController::class, 'destroy']);
     Route::get('show-trip/{id}', [TripController::class, 'show']);
-    Route::get('/search-trip', [TripController::class, 'search']);
+   
     Route::get('trips', [TripController::class, 'index']);
     Route::get('/all-trips', [TripController::class, 'allTrips']); 
     Route::get('shows-trip/{id}', [TripController::class, 'shows']);
+    
     //Reservation
     Route::post('trips/{tripId}/passenger/{passengerId}', [TripController::class, 'addPassenger']);
    Route::get('trips/{id}/driver', [TripController::class, 'getDriver']);

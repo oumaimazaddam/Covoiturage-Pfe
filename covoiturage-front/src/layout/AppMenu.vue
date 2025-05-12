@@ -37,8 +37,7 @@ if (role_id === 1) {
         {
             label: 'Get Started',
             items: [
-                { label: 'Documentation', icon: 'pi pi-fw pi-book', to: '/documentation' },
-                { label: 'View Source', icon: 'pi pi-fw pi-github', url: 'https://github.com/primefaces/sakai-vue', target: '_blank' }
+                { label: 'View Source', icon: 'pi pi-fw pi-github', url: 'https://github.com/oumaimazaddam/Covoiturage-Pfe', target: '_blank' }
             ]
         }
     ];

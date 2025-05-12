@@ -6,6 +6,8 @@ use App\Models\Trip;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Events\NewTripPublished;
+use App\Events\NewTripToast;
 class TripController extends Controller
 {
    
@@ -85,7 +87,9 @@ class TripController extends Controller
         ]);
        
         $trip->drivers()->attach($user->id, ['passenger_id' => $user->id]);
-        
+        event(new NewTripPublished($trip, $user->name));
+        event(new NewTripToast($trip, $user->id, $user->name));
+    
         return response()->json([
             'message' => 'Trip created successfully',
             'user' => $user,

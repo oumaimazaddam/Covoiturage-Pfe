@@ -41,7 +41,7 @@ export default {
 
     async fetchReservations() {
       try {
-        const token = localStorage.getItem("token"); // ← ou "access_token", selon ton backend
+        const token = localStorage.getItem("access_token"); // ← ou "access_token", selon ton backend
         const response = await axios.get(
           `http://localhost:8000/api/reservations/passenger/${this.currentUser.id}`,
           {

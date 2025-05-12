@@ -84,7 +84,7 @@ onMounted(() => {
       </button>
       <Router-link to="/" class="layout-topbar-logo">
         <svg><!-- Votre SVG logo --></svg>
-        <span>Carpool</span>
+        <span> My Covoiturage</span>
       </router-link>
     </div>
 

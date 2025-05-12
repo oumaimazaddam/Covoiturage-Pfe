@@ -16,11 +16,22 @@ import Dialog from 'primevue/dialog';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 
+
 const app = createApp(App);
 app.use(Toast, {
+    position: 'top-right',
+    timeout: 5000,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    draggablePercent: 0.6,
+    showCloseButtonOnHover: false,
+    hideProgressBar: false,
+    closeButton: 'button',
+    icon: true,
     transition: 'Vue-Toastification__bounce',
     maxToasts: 20,
-    newestOnTop: true
+    newestOnTop: true,
 });
 
 app.config.globalProperties.$axios = axios;
@@ -40,5 +51,6 @@ app.use(ToastService);
 app.use(ConfirmationService);
 app.component('Dialog', Dialog);
 app.component('Button', Button);
+
 
 app.mount('#app');

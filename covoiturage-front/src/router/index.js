@@ -43,15 +43,11 @@ const router = createRouter({
                     name: 'profile',
                     component: () => import('@/views/uikit/Profile.vue')
                 },
+                
                 {
-                    path: '/uikit/input',
-                    name: 'input',
-                    component: () => import('@/views/uikit/InputDoc.vue')
-                },
-                {
-                    path: '/uikit/button',
-                    name: 'button',
-                    component: () => import('@/views/uikit/ButtonDoc.vue')
+                    path: '/uikit/feedbacks',
+                    name: 'feedbacks',
+                    component: () => import('@/views/uikit/Feedbacks.vue')
                 },
                 {
                     path: '/uikit/utilisateur',
@@ -68,6 +64,16 @@ const router = createRouter({
                     path: '/uikit/trajet',
                     name: 'trajet',
                     component: () => import('@/views/uikit/TrajetG.vue')
+                },
+                {
+                    path: '/trajetH',
+                    name: 'trajetH',
+                    component: () => import('@/views/HistoriqueTrajet.vue')
+                },
+                {
+                    path: '/reservation-history',
+                    name: 'reservation-history',
+                    component: () => import('@/views/HistoriqueReservation.vue')
                 },
 
                 
