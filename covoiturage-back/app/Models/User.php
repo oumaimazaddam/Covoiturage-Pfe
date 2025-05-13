@@ -80,5 +80,9 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $this->hasMany(Message::class);
     }
-   
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'driver_id');
+    }
+    
 }

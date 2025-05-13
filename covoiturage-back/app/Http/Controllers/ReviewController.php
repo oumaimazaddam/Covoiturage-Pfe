@@ -5,7 +5,7 @@ use App\Models\Review;
 use App\Models\Trip;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\DB;
 class ReviewController extends Controller
 {
     public function store(Request $request)
@@ -100,5 +100,56 @@ class ReviewController extends Controller
             });
 
         return response()->json($reviews);
+    }
+    public function driverTripReviews(Request $request)
+    {
+        // Récupérer l'utilisateur authentifié
+        $user = Auth::user();
+        
+        // Vérifier que l'utilisateur est un conducteur (role_id = 2)
+        if (!$user || $user->role_id !== 2) {
+            return response()->json(['message' => 'Non autorisé. Seuls les conducteurs peuvent voir leurs avis.'], 403);
+        }
+
+        // Récupérer les trip_id associés au conducteur depuis la table trip_passenger
+        $tripIds = DB::table('trip_passenger')
+            ->where('driver_id', $user->id)
+            ->pluck('trip_id')
+            ->unique();
+
+        // Si aucun trajet n'est trouvé
+        if ($tripIds->isEmpty()) {
+            return response()->json([
+                'message' => 'Aucun trajet trouvé pour ce conducteur.',
+                'reviews' => []
+            ], 200);
+        }
+
+        // Récupérer les avis pour les trajets du conducteur
+        $reviews = Review::whereIn('trip_id', $tripIds)
+            ->with(['trip', 'passenger'])
+            ->get()
+            ->map(function ($review) {
+                return [
+                    'review_id' => $review->id,
+                    'trip_id' => $review->trip_id,
+                    'departure' => $review->trip->departure,
+                    'destination' => $review->trip->destination,
+                    'trip_date' => $review->trip->trip_date,
+                    'passenger_name' => $review->passenger->name,
+                    'rating' => $review->rating,
+                    'comment' => $review->comment ?? 'Aucun commentaire',
+                    'created_at' => $review->created_at->format('Y-m-d H:i:s'),
+                ];
+            });
+
+        // Calculer la note moyenne
+        $averageRating = $reviews->avg('rating') ?: 0;
+
+        return response()->json([
+            'reviews' => $reviews,
+            'average_rating' => round($averageRating, 2),
+            'total_reviews' => $reviews->count(),
+        ], 200);
     }
 }

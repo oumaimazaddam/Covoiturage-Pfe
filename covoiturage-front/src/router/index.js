@@ -83,6 +83,13 @@ const router = createRouter({
                     component: () => import('@/views/Messenger.vue'),
                      // Automatically pass route params as props
                 },
+                {
+                    path: '/feedbacksP/:tripId',
+                    name: 'feedbacksP',
+                    component: () => import('@/views/FeedbacksP.vue'),
+                    props: true,// Require authentication
+                     // Automatically pass route params as props
+                },
                 
                 {
                     path: '/uikit/reservationL',

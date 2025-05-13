@@ -23,7 +23,7 @@ export default {
 
   methods: {
     async checkAuthAndFetch() {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('access_token');
       const userId = localStorage.getItem('user_id');
 
       if (!token || !userId) {
@@ -82,7 +82,7 @@ export default {
       this.errorMessage = '';
 
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');////
         const response = await axios.post(
           `${this.baseUrl}/trips/${this.tripId}/passenger/${this.reservation.user_id}`,
           {},

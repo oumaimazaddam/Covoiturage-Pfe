@@ -42,7 +42,7 @@ class Trip extends Model
     
     public function reviews()
     {
-        return $this->hasMany(Review::class);
+        return $this->hasMany(Review::class, 'trip_id');
     }
     protected static function boot()
     {
@@ -53,4 +53,5 @@ class Trip extends Model
             }
         });
     }
+    
 }

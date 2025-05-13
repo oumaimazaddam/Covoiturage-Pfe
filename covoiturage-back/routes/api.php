@@ -77,6 +77,7 @@ Route::middleware([JwtMiddleware::class])->group(function () {
 Route::post('/reviews', [ReviewController::class, 'store']); // Submit a review
 Route::get('/drivers/{driverId}/reviews', [ReviewController::class, 'index']);
 Route::get('/all-reviews', [ReviewController::class, 'indexAdmin']);
+Route::get('/driver-reviews', [ReviewController::class, 'driverTripReviews']);
 //
 Route::post('/broadcasting/auth', function (Request $request) {
     try {
