@@ -152,4 +152,5 @@ class ReviewController extends Controller
             'total_reviews' => $reviews->count(),
         ], 200);
     }
+    
 }

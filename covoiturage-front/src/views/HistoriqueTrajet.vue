@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
@@ -9,6 +8,9 @@ const loading = ref(false);
 const tripHistory = ref([]);
 const errorMessage = ref('');
 const successMessage = ref('');
+const showReviewsModal = ref(false);
+const selectedTripReviews = ref([]);
+const selectedTripId = ref(null);
 
 // 🔄 Récupération des trajets
 const fetchTripHistory = async () => {
@@ -23,14 +25,44 @@ const fetchTripHistory = async () => {
       },
     });
 
-    console.log('API response:', response.data); // Debug API response
-    tripHistory.value = response.data.data || response.data; // Handle wrapped response
+    console.log('Trips API response:', response.data);
+    tripHistory.value = response.data.data || response.data;
   } catch (error) {
     console.error('Erreur:', error);
     errorMessage.value = error.response?.data?.message || 'Erreur lors du chargement';
     if (error.response?.status === 401) router.push('/login');
   } finally {
     loading.value = false;
+  }
+};
+
+// 📝 Récupération des avis pour un trajet
+const fetchTripReviews = async (tripId) => {
+  try {
+    const token = localStorage.getItem('access_token');
+    if (!token) throw new Error('Aucun token d’authentification trouvé');
+
+    const response = await axios.get('http://127.0.0.1:8000/api/driver-reviews', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    console.log('Reviews API response:', response.data);
+    // Filter reviews for the specific trip_id
+    selectedTripReviews.value = response.data.reviews.filter(review => review.trip_id === tripId) || [];
+    selectedTripId.value = tripId;
+    showReviewsModal.value = true;
+
+    if (selectedTripReviews.value.length === 0) {
+      errorMessage.value = 'Aucun avis trouvé pour ce trajet.';
+    }
+  } catch (error) {
+    console.error('Erreur lors de la récupération des avis:', error);
+    errorMessage.value = error.response?.data?.message || 'Erreur lors de la récupération des avis';
+    if (error.response?.status === 403) {
+      errorMessage.value = 'Vous n’êtes pas autorisé à voir les avis.';
+    }
   }
 };
 
@@ -56,7 +88,7 @@ const confirmDeleteTrip = async (tripId) => {
 
 // ✏️ Modifier un trajet
 const editTrip = (tripData) => {
-  console.log('editTrip called with tripData:', tripData); // Debug input data
+  console.log('editTrip called with tripData:', tripData);
   const formattedData = {
     id: tripData.id,
     departure: tripData.departure || '',
@@ -68,15 +100,18 @@ const editTrip = (tripData) => {
     available_seats: tripData.available_seats || 1,
     instant_booking: tripData.instant_booking !== undefined ? tripData.instant_booking : true,
   };
-  console.log('Formatted trip data for query:', formattedData); // Debug formatted data
+  console.log('Formatted trip data for query:', formattedData);
   router.push({
     path: '/ajouter-trajet',
     query: {
       edit: 'true',
-      trip: encodeURIComponent(JSON.stringify(formattedData)), // URL-encode JSON
+      trip: encodeURIComponent(JSON.stringify(formattedData)),
     },
   });
 };
+
+// 📝 Naviguer vers la page pour soumettre un avis
+
 
 // 📅 Format date
 const formatDate = (dateString) => {
@@ -206,12 +241,21 @@ onMounted(() => {
             </div>
             <div class="mt-2 flex justify-end space-x-2">
               <button
+                v-if="tripItem.status === 'completed'"
+                @click="fetchTripReviews(tripItem.id)"
+                class="px-3 py-1 bg-purple-100 text-purple-600 rounded hover:bg-purple-200 transition text-sm font-medium"
+              >
+                📝 Voir les avis
+              </button>
+              <button
+                v-if="tripItem.status !== 'completed'"
                 @click="editTrip(tripItem)"
                 class="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition text-sm font-medium"
               >
                 Modifier
               </button>
               <button
+                v-if="tripItem.status !== 'completed'"
                 @click="confirmDeleteTrip(tripItem.id)"
                 class="px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition text-sm font-medium"
               >
@@ -222,6 +266,39 @@ onMounted(() => {
         </div>
         <div v-else class="text-center py-8 text-gray-500">
           Aucun trajet enregistré pour le moment
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal pour afficher les avis -->
+    <div
+      v-if="showReviewsModal"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    >
+      <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+        <h2 class="text-xl font-bold mb-4">Avis pour le trajet  </h2>
+        <div v-if="selectedTripReviews.length > 0" class="space-y-4">
+          <div
+            v-for="review in selectedTripReviews"
+            :key="review.review_id"
+            class="border p-4 rounded-lg"
+          >
+            <p><strong>Passager:</strong> {{ review.passenger_name }}</p>
+            <p><strong>Note:</strong> <span style="color: #FFC107;" v-html="'★'.repeat(review.rating) + '☆'.repeat(5 - review.rating)"></span></p>
+            <p><strong>Commentaire:</strong> {{ review.comment || 'Aucun commentaire' }}</p>
+            <p><strong>Date:</strong> {{ new Date(review.created_at).toLocaleString('fr-FR') }}</p>
+          </div>
+        </div>
+        <div v-else class="text-center text-gray-500">
+          Aucun avis pour ce trajet.
+        </div>
+        <div class="mt-4 flex justify-end">
+          <button
+            @click="showReviewsModal = false"
+            class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition"
+          >
+            Fermer
+          </button>
         </div>
       </div>
     </div>
