@@ -80,9 +80,9 @@ onMounted(async () => {
             <Column field="passenger_name" header="Passager" sortable></Column>
             <Column field="driver_name" header="Conducteur" sortable></Column>
             <Column field="comment" header="Commentaire" sortable></Column>
-            <Column field="review" header="Note">
+            <Column field="rating" header="Note">
                 <template #body="{ data }">
-                    <span>{{ formatReview(data.review) }}</span>
+                    <span class="rating-stars">{{ formatReview(data.rating) }}</span>
                 </template>
             </Column>
             <Column field="created_at" header="Date " sortable></Column>
@@ -96,5 +96,8 @@ onMounted(async () => {
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.rating-stars {
+    color: #FFD700; /* Jaune (gold) */
 }
 </style>
