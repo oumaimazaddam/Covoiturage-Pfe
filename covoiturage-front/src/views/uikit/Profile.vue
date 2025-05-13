@@ -274,8 +274,8 @@ export default {
               </div>
 
               <div class="field">
-                <label class="block text-sm font-medium text-900 mb-1">Photo de profil</label>
-                <input type="file" @change="handleFileUpload" class="input-field" />
+               
+               
                 <div v-if="profilePreview" class="mt-2 flex items-center">
                   <img :src="profilePreview" alt="Aperçu de la photo" class="h-16 w-16 rounded-full" />
                 </div>
