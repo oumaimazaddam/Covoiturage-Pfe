@@ -85,15 +85,15 @@ onMounted(() => {
 
 <template>
   <div class="layout-topbar">
-    <div class="layout-topbar-logo-container">
-      <button class="layout-menu-button layout-topbar-action" @click="toggleMenu">
-        <i class="pi pi-bars"></i>
-      </button>
-      <Router-link to="/" class="layout-topbar-logo">
-        <svg><!-- Votre SVG logo --></svg>
-        <span> My Covoiturage</span>
-      </router-link>
-    </div>
+   <div class="layout-topbar-logo-container">
+  <button class="layout-menu-button layout-topbar-action" @click="toggleMenu">
+    <i class="pi pi-bars"></i>
+  </button>
+  <Router-link to="/" class="layout-topbar-logo">
+    <img src="/home/kali/Downloads/parking/car.jpg"  style="height: 40px; width: auto;" />
+    <span>My Covoiturage</span>
+  </Router-link>
+</div>
 
     <!-- 🔒 Liens visibles uniquement pour les rôles 2 et 3 -->
     <div 
