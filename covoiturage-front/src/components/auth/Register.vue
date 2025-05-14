@@ -28,16 +28,14 @@ export default {
       }
 
       if (this.phone_number.length !== 8 && this.phone_number.length > 0) {
-        this.phoneError = 'Phone number must be exactly 8 digits';
-        return false;
+        this.phoneError = 'Le numéro de téléphone doit comporter exactement 8 chiffres ';
       } else {
         this.phoneError = '';
-        return true;
       }
     },
 
     validateAge() {
-      if (!this.birthday) return false;
+      if (!this.birthday) return true;
 
       const birthDate = new Date(this.birthday);
       const today = new Date();
@@ -48,16 +46,14 @@ export default {
         age--;
       }
 
-      if (parseInt(this.role_id) === 2 && age < 18) {
-        this.ageError = 'You must be at least 18 years old to register as a Driver.';
+      if (this.role_id == '2' && age < 18) {
+        this.ageError = 'Vous devez avoir au moins 18 ans pour vous inscrire en tant que conducteur.';
         return false;
       }
-
-      if (parseInt(this.role_id) === 3 && age < 16) {
-        this.ageError = 'You must be at least 16 years old to register as a Passenger.';
+      if (this.role_id == '3' && age < 16) {
+        this.ageError = 'Vous devez avoir au moins 16 ans pour vous inscrire en tant que passager.';
         return false;
       }
-
       this.ageError = '';
       return true;
     },
@@ -72,7 +68,8 @@ export default {
         return;
       }
 
-      if (!this.validatePhoneNumber()) {
+      if (!this.phone_number || this.phone_number.length !== 8) {
+        this.phoneError = 'Le numéro de téléphone doit comporter exactement 8 chiffres ';
         this.loading = false;
         return;
       }
@@ -83,15 +80,15 @@ export default {
         phone_number: this.phone_number,
         birthday: this.birthday,
         role_id: this.role_id,
-        car_id: this.num_vehicule || null,
-        drivingLicence: this.matricule_permis || null,
+        car_id: this.role_id === '2' ? this.num_vehicule || null : null,
+        drivingLicence: this.role_id === '2' ? this.matricule_permis || null : null,
         password: this.password,
-        password_confirmation: this.password_confirmation
+        password_confirmation: this.password_confirmation,
       };
 
       try {
         const response = await axios.post('http://localhost:8000/api/register', formData, {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         });
 
         if (response.data.token) {
@@ -101,31 +98,33 @@ export default {
 
         this.$router.push('/login');
       } catch (error) {
-        this.errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
         console.error('Erreur API:', error.response?.data);
+        this.errorMessage = error.response?.data?.message || 'Inscription a échoué. Veuillez réessayer.';
       } finally {
         this.loading = false;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
 <template>
   <div> 
+    
     <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
       <div class="flex flex-col items-center justify-center">
         <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 45%)">
           <div class="w-full bg-surface-0 dark:bg-surface-900 py-12 px-8 sm:px-16" style="border-radius: 53px">
             <div class="text-center mb-8">
-            
-              <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome to Covoiturage</div>
-              <span class="text-muted-color font-medium">Create your account</span>
+              <br/>
+               <br/>
+              <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Bienvenue chez Covoiturage</div>
+              <span class="text-muted-color font-medium">Créez votre compte</span>
             </div>
 
             <form @submit.prevent="submitRegister" class="space-y-4">
               <div class="field">
-                <label class="block text-sm font-medium text-900 mb-1">Role</label>
+                <label class="block text-sm font-medium text-900 mb-1">Rôle</label>
                 <select 
                   v-model="role_id" 
                   class="w-full p-3 border-2 border-solid border-surface-300 dark:border-surface-600 rounded-md
@@ -133,21 +132,21 @@ export default {
          transition-colors duration-200 bg-surface-50 dark:bg-surface-800"
                   required
                 >
-                  <option value="" disabled>Select your role</option>
-                  <option value="2">Driver</option>
-                  <option value="3">Passenger</option>
+                  <option value="" disabled>Sélectionnez votre rôle</option>
+                  <option value="2">Conducteur</option>
+                  <option value="3">Passager</option>
                 </select>
               </div>
 
               <div class="field">
-                <label class="block text-sm font-medium text-900 mb-1">Full Name</label>
+                <label class="block text-sm font-medium text-900 mb-1">Nom Complet</label>
                 <input 
                   v-model="name" 
                   type="text" 
                   class="w-full p-3 border-2 border-solid border-surface-300 dark:border-surface-600 rounded-md 
          focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 
          transition-colors duration-200 bg-surface-50 dark:bg-surface-800"
-                  placeholder="Enter your full name"
+                  placeholder="Entrez votre nom complet"
                   required
                 />
               </div>
@@ -160,13 +159,13 @@ export default {
                   class="w-full p-3 border-2 border-solid border-surface-300 dark:border-surface-600 rounded-md 
          focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 
          transition-colors duration-200 bg-surface-50 dark:bg-surface-800"
-                  placeholder="Enter your email"
+                  placeholder="Enterz votre email"
                   required
                 />
               </div>
 
               <div class="field">
-                <label class="block text-sm font-medium text-900 mb-1">Date of Birth</label>
+                <label class="block text-sm font-medium text-900 mb-1">Date de naissance</label>
                 <input 
                   v-model="birthday" 
                   type="date" 
@@ -180,7 +179,7 @@ export default {
               </div>
 
               <div class="field">
-                <label class="block text-sm font-medium text-900 mb-1">Phone Number</label>
+                <label class="block text-sm font-medium text-900 mb-1">Numero de telephone</label>
                 <input 
                   v-model="phone_number" 
                   type="tel"
@@ -189,58 +188,58 @@ export default {
                   class="w-full p-3 border-2 border-solid border-surface-300 dark:border-surface-600 rounded-md 
          focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 
          transition-colors duration-200 bg-surface-50 dark:bg-surface-800"
-                  placeholder="Enter your phone number (8 digits)"
+                  placeholder="Entrez votre numéro de téléphone (8 chiffres)"
                   required
                 />
                 <span v-if="phoneError" class="text-red-500 text-sm">{{ phoneError }}</span>
               </div>
 
               <div v-if="role_id == '2'" class="field">
-                <label class="block text-sm font-medium text-900 mb-1">Vehicle Number</label>
+                <label class="block text-sm font-medium text-900 mb-1">Numéro de véhicule</label>
                 <input 
                   v-model="num_vehicule" 
                   type="text" 
                   class="w-full p-3 border-2 border-solid border-surface-300 dark:border-surface-600 rounded-md 
          focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 
          transition-colors duration-200 bg-surface-50 dark:bg-surface-800"
-                  placeholder="Enter your vehicle number"
+                  placeholder="Enterz votre Numéro de véhicule"
                 />
               </div>
 
               <div v-if="role_id == '2'" class="field">
-                <label class="block text-sm font-medium text-900 mb-1">License Number</label>
+                <label class="block text-sm font-medium text-900 mb-1">Numéro de licence</label>
                 <input 
                   v-model="matricule_permis" 
                   type="text" 
                   class="w-full p-3 border-2 border-solid border-surface-300 dark:border-surface-600 rounded-md 
          focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 
          transition-colors duration-200 bg-surface-50 dark:bg-surface-800"
-                  placeholder="Enter your license number"
+                  placeholder="Enterz votre Numéro de licence"
                 />
               </div>
 
               <div class="field">
-                <label class="block text-sm font-medium text-900 mb-1">Password</label>
+                <label class="block text-sm font-medium text-900 mb-1">Mot de passe</label>
                 <input 
                   v-model="password" 
                   type="password" 
                   class="w-full p-3 border-2 border-solid border-surface-300 dark:border-surface-600 rounded-md 
          focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 
          transition-colors duration-200 bg-surface-50 dark:bg-surface-800"
-                  placeholder="Create a password"
+                  placeholder="Créer un mot de passe"
                   required
                 />
               </div>
 
               <div class="field">
-                <label class="block text-sm font-medium text-900 mb-1">Confirm Password</label>
+                <label class="block text-sm font-medium text-900 mb-1">Confirmez mot de passe</label>
                 <input 
                   v-model="password_confirmation" 
                   type="password" 
                   class="w-full p-3 border-2 border-solid border-surface-300 dark:border-surface-600 rounded-md 
          focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 
          transition-colors duration-200 bg-surface-50 dark:bg-surface-800"
-                  placeholder="Confirm your password"
+                  placeholder="Confirmez votre mot de passe"
                   required
                 />
               </div>
@@ -251,7 +250,7 @@ export default {
                   class="w-full py-3 mt-6 bg-primary-500 text-white font-medium text-lg rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500" 
                   :disabled="loading"
                 >
-                  <span v-if="loading">Creating account...</span>
+                  <span v-if="loading">Création du compte...</span>
                   <span v-else>Register</span>
                 </button>
               </div>
@@ -259,7 +258,7 @@ export default {
               <div v-if="errorMessage" class="text-red-500 text-center">{{ errorMessage }}</div>
 
               <div class="text-center text-sm mt-4">
-                Already have an account? 
+                Vous avez déjà un compte ?
                 <router-link to="/login" class="text-primary-500 hover:underline">Sign in</router-link>
               </div>
             </form>
@@ -269,4 +268,3 @@ export default {
     </div>
   </div>
 </template>
-

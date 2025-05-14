@@ -44,6 +44,7 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::get('/admin/users', [JWTAuthController::class, 'getUsers']);
     Route::put('/admin/activate-user/{id}', [JWTAuthController::class, 'activateUser']);
     Route::get('/admins/users', [JWTAuthController::class, 'getAdmin']);
+    Route::get('/user', [JWTAuthController::class, 'getUser']);
     //Trip
     Route::post('/create-trip', [TripController::class, 'store']);
     Route::put('trips/{id}', [TripController::class, 'update']);
@@ -78,6 +79,8 @@ Route::post('/reviews', [ReviewController::class, 'store']); // Submit a review
 Route::get('/drivers/{driverId}/reviews', [ReviewController::class, 'index']);
 Route::get('/all-reviews', [ReviewController::class, 'indexAdmin']);
 Route::get('/driver-reviews', [ReviewController::class, 'driverTripReviews']);
+
+
 //
 Route::post('/broadcasting/auth', function (Request $request) {
     try {
