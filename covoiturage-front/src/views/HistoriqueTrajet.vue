@@ -155,9 +155,7 @@ onMounted(() => {
 <template>
   <div class="min-h-screen bg-white">
     <!-- En-tête -->
-    <div class="bg-blue-600 text-white p-4 shadow-md">
-      <h1 class="text-2xl font-bold text-center">📜 Historique des trajets</h1>
-    </div>
+    
 
     <!-- Contenu principal -->
     <div class="p-6 max-w-4xl mx-auto">

@@ -1,6 +1,6 @@
-
+```vue
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import axios from 'axios';
 import { useRouter, useRoute } from 'vue-router';
 
@@ -43,6 +43,48 @@ const cityDistances = {
   'sfax-tunis': 270,
   'sousse-sfax': 130,
   'sfax-sousse': 130,
+};
+
+// Computed properties for 24-hour time formatting
+const formattedDepartureTime = computed({
+  get() {
+    return trip.value.departure_time || '';
+  },
+  set(value) {
+    // Validate HH:mm format (00:00 to 23:59)
+    if (value && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
+      trip.value.departure_time = value;
+    } else {
+      trip.value.departure_time = '';
+    }
+  }
+});
+
+const formattedArrivalTime = computed({
+  get() {
+    return trip.value.estimate_arrival_time || '';
+  },
+  set(value) {
+    if (value && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
+      trip.value.estimate_arrival_time = value;
+    } else {
+      trip.value.estimate_arrival_time = '';
+    }
+  }
+});
+
+// Input mask handler for HH:mm format
+const applyTimeMask = (value) => {
+  if (!value) return '';
+  // Remove non-numeric characters except colon
+  let clean = value.replace(/[^0-9:]/g, '');
+  // Limit to 5 characters (HH:mm)
+  clean = clean.slice(0, 5);
+  // Add colon after 2 digits if needed
+  if (clean.length > 2 && !clean.includes(':')) {
+    clean = clean.slice(0, 2) + ':' + clean.slice(2);
+  }
+  return clean;
 };
 
 const calculateDistanceAndPrice = () => {
@@ -91,9 +133,17 @@ const nextStep = () => {
     errorMessage.value = 'Veuillez sélectionner une date';
     return;
   }
-  if (currentStep.value === 3 && (!trip.value.departure_time || !trip.value.estimate_arrival_time)) {
-    errorMessage.value = 'Veuillez saisir les heures de départ et d’arrivée';
-    return;
+  if (currentStep.value === 3) {
+    if (!trip.value.departure_time || !trip.value.estimate_arrival_time) {
+      errorMessage.value = 'Veuillez saisir les heures de départ et d’arrivée';
+      return;
+    }
+    // Validate 24-hour format
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(trip.value.departure_time) || !timeRegex.test(trip.value.estimate_arrival_time)) {
+      errorMessage.value = 'Veuillez utiliser le format 24h (ex: 14:30)';
+      return;
+    }
   }
   if (currentStep.value === 4 && (!trip.value.price || !trip.value.available_seats)) {
     errorMessage.value = 'Veuillez saisir le prix et le nombre de places';
@@ -218,13 +268,13 @@ onMounted(() => {
   if (!token) {
     router.push('/login');
   } else {
-    console.log('Route query:', route.query); // Debug query params
+    console.log('Route query:', route.query);
     if (route.query.edit === 'true' && route.query.trip) {
       try {
-        const tripData = JSON.parse(decodeURIComponent(route.query.trip)); // Decode URL-encoded JSON
-        console.log('Parsed trip data:', tripData); // Debug parsed data
-        trip.value = { ...trip.value, ...tripData }; // Merge to preserve defaults
-        console.log('Updated trip.value:', trip.value); // Debug assigned data
+        const tripData = JSON.parse(decodeURIComponent(route.query.trip));
+        console.log('Parsed trip data:', tripData);
+        trip.value = { ...trip.value, ...tripData };
+        console.log('Updated trip.value:', trip.value);
         calculateDistanceAndPrice();
         currentStep.value = 1;
         window.scrollTo(0, 0);
@@ -268,9 +318,6 @@ watch(
 
     <!-- Contenu principal -->
     <div class="p-6 max-w-2xl mx-auto">
-      <!-- Debug output -->
-     
-
       <!-- Message de succès -->
       <div
         v-if="successMessage"
@@ -343,8 +390,12 @@ watch(
           <div>
             <label class="block text-gray-700 mb-2">Heure de départ</label>
             <input
-              v-model="trip.departure_time"
-              type="time"
+              v-model="formattedDepartureTime"
+              type="text"
+              @input="formattedDepartureTime = applyTimeMask($event.target.value)"
+              placeholder="HH:mm (ex: 14:30)"
+              title="Utilisez le format 24h, ex: 14:30"
+              pattern="([0-1]?[0-9]|2[0-3]):[0-5][0-9]"
               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               required
             />
@@ -352,8 +403,12 @@ watch(
           <div>
             <label class="block text-gray-700 mb-2">Heure d'arrivée estimée</label>
             <input
-              v-model="trip.estimate_arrival_time"
-              type="time"
+              v-model="formattedArrivalTime"
+              type="text"
+              @input="formattedArrivalTime = applyTimeMask($event.target.value)"
+              placeholder="HH:mm (ex: 16:45)"
+             
+              pattern="([0-1]?[0-9]|2[0-3]):[0-5][0-9]"
               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               required
             />
@@ -478,7 +533,6 @@ body {
 }
 input[type='text'],
 input[type='date'],
-input[type='time'],
 input[type='number'],
 input[type='checkbox'] {
   transition: border-color 0.3s, box-shadow 0.3s;

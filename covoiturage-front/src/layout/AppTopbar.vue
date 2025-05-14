@@ -31,18 +31,25 @@ const handlePublish = async () => {
     alert("Vous devez être connecté pour publier un trajet !");
     router.push('/login');
     return;
-    
   }
+
+  const storedRole = localStorage.getItem('user_role');
+  console.log('Role local:', storedRole); // Débogage
 
   try {
     const token = localStorage.getItem('access_token');
-    if (!token) throw new Error("Token manquant");
+    console.log('Token:', token); // Débogage
+    if (!token) {
+      throw new Error("Token manquant");
+    }
 
     const response = await axios.get('http://127.0.0.1:8000/api/user', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     });
+
+    console.log('Réponse API:', response.data); // Débogage
 
     if (response.data.role_id === 2) {
       router.push('/ajouter-trajet');
@@ -54,6 +61,7 @@ const handlePublish = async () => {
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token');
       isAuthenticated.value = false;
+      alert("Session expirée, veuillez vous reconnecter.");
       router.push('/login');
     } else {
       alert("Erreur lors de la vérification des permissions");
