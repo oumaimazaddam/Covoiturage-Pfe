@@ -160,14 +160,14 @@ onMounted(() => {
     <!-- Contenu principal -->
     <div class="p-6 max-w-4xl mx-auto">
       <!-- Bouton retour -->
-      <div class="mb-6">
-        <button
-          @click="router.push('/ajouter-trajet')"
-          class="flex items-center px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200 font-medium"
-        >
-          ➕ Ajouter un trajet
-        </button>
-      </div>
+      <div class="mb-6 flex justify-end">
+  <button
+    @click="router.push('/ajouter-trajet')"
+    class="flex items-center px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200 font-medium"
+  >
+    ➕ Ajouter un trajet
+  </button>
+</div>
 
       <!-- Messages -->
       <div
@@ -231,7 +231,7 @@ onMounted(() => {
                 {{ tripItem.available_seats }}
               </div>
               <div>
-                <span class="font-semibold">Statut:</span>
+                <span class="font-semibold">Statut: </span>
                 <span :class="statusClass(tripItem.status)">
                   {{ getStatusText(tripItem.status) }}
                 </span>

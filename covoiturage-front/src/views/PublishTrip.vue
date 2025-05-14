@@ -1,6 +1,6 @@
 ```vue
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { useRouter, useRoute } from 'vue-router';
 
@@ -45,47 +45,51 @@ const cityDistances = {
   'sfax-sousse': 130,
 };
 
-// Computed properties for 24-hour time formatting
-const formattedDepartureTime = computed({
-  get() {
-    return trip.value.departure_time || '';
-  },
-  set(value) {
-    // Validate HH:mm format (00:00 to 23:59)
-    if (value && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
-      trip.value.departure_time = value;
-    } else {
-      trip.value.departure_time = '';
+// Generate time options in 5-minute increments
+const timeOptions = ref([]);
+const generateTimeOptions = () => {
+  const options = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 5) {
+      const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      options.push(time);
     }
   }
-});
-
-const formattedArrivalTime = computed({
-  get() {
-    return trip.value.estimate_arrival_time || '';
-  },
-  set(value) {
-    if (value && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(value)) {
-      trip.value.estimate_arrival_time = value;
-    } else {
-      trip.value.estimate_arrival_time = '';
-    }
-  }
-});
-
-// Input mask handler for HH:mm format
-const applyTimeMask = (value) => {
-  if (!value) return '';
-  // Remove non-numeric characters except colon
-  let clean = value.replace(/[^0-9:]/g, '');
-  // Limit to 5 characters (HH:mm)
-  clean = clean.slice(0, 5);
-  // Add colon after 2 digits if needed
-  if (clean.length > 2 && !clean.includes(':')) {
-    clean = clean.slice(0, 2) + ':' + clean.slice(2);
-  }
-  return clean;
+  timeOptions.value = options;
 };
+
+// Initialize time options on mount
+onMounted(() => {
+  generateTimeOptions();
+
+  const token = localStorage.getItem('access_token');
+  if (!token) {
+    router.push('/login');
+  } else {
+    console.log('Route query:', route.query);
+    if (route.query.edit === 'true' && route.query.trip) {
+      try {
+        const tripData = JSON.parse(decodeURIComponent(route.query.trip));
+        console.log('Parsed trip data:', tripData);
+        trip.value = { ...trip.value, ...tripData };
+        // Ensure time values match an option in timeOptions
+        if (trip.value.departure_time && !timeOptions.value.includes(trip.value.departure_time)) {
+          trip.value.departure_time = '';
+        }
+        if (trip.value.estimate_arrival_time && !timeOptions.value.includes(trip.value.estimate_arrival_time)) {
+          trip.value.estimate_arrival_time = '';
+        }
+        console.log('Updated trip.value:', trip.value);
+        calculateDistanceAndPrice();
+        currentStep.value = 1;
+        window.scrollTo(0, 0);
+      } catch (error) {
+        console.error('Error parsing trip data:', error);
+        errorMessage.value = 'Erreur lors du chargement des données du trajet';
+      }
+    }
+  }
+});
 
 const calculateDistanceAndPrice = () => {
   if (!trip.value.departure || !trip.value.destination) {
@@ -135,13 +139,21 @@ const nextStep = () => {
   }
   if (currentStep.value === 3) {
     if (!trip.value.departure_time || !trip.value.estimate_arrival_time) {
-      errorMessage.value = 'Veuillez saisir les heures de départ et d’arrivée';
+      errorMessage.value = 'Veuillez sélectionner les heures de départ et d’arrivée';
       return;
     }
-    // Validate 24-hour format
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeRegex.test(trip.value.departure_time) || !timeRegex.test(trip.value.estimate_arrival_time)) {
-      errorMessage.value = 'Veuillez utiliser le format 24h (ex: 14:30)';
+      errorMessage.value = 'Heure invalide. Veuillez sélectionner une heure valide.';
+      return;
+    }
+    // Optional: Validate that arrival time is after departure time
+    const [depHour, depMinute] = trip.value.departure_time.split(':').map(Number);
+    const [arrHour, arrMinute] = trip.value.estimate_arrival_time.split(':').map(Number);
+    const depTimeInMinutes = depHour * 60 + depMinute;
+    const arrTimeInMinutes = arrHour * 60 + arrMinute;
+    if (arrTimeInMinutes <= depTimeInMinutes) {
+      errorMessage.value = "L'heure d'arrivée doit être postérieure à l'heure de départ";
       return;
     }
   }
@@ -263,29 +275,6 @@ const resetForm = () => {
   priceAdvice.value = 'Sélectionnez un trajet pour voir les prix recommandés';
 };
 
-onMounted(() => {
-  const token = localStorage.getItem('access_token');
-  if (!token) {
-    router.push('/login');
-  } else {
-    console.log('Route query:', route.query);
-    if (route.query.edit === 'true' && route.query.trip) {
-      try {
-        const tripData = JSON.parse(decodeURIComponent(route.query.trip));
-        console.log('Parsed trip data:', tripData);
-        trip.value = { ...trip.value, ...tripData };
-        console.log('Updated trip.value:', trip.value);
-        calculateDistanceAndPrice();
-        currentStep.value = 1;
-        window.scrollTo(0, 0);
-      } catch (error) {
-        console.error('Error parsing trip data:', error);
-        errorMessage.value = 'Erreur lors du chargement des données du trajet';
-      }
-    }
-  }
-});
-
 watch(
   () => [trip.value.departure, trip.value.destination],
   () => {
@@ -389,29 +378,25 @@ watch(
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-gray-700 mb-2">Heure de départ</label>
-            <input
-              v-model="formattedDepartureTime"
-              type="text"
-              @input="formattedDepartureTime = applyTimeMask($event.target.value)"
-              placeholder="HH:mm (ex: 14:30)"
-              title="Utilisez le format 24h, ex: 14:30"
-              pattern="([0-1]?[0-9]|2[0-3]):[0-5][0-9]"
+            <select
+              v-model="trip.departure_time"
               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               required
-            />
+            >
+              <option value="" disabled selected>--:--</option>
+              <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
+            </select>
           </div>
           <div>
             <label class="block text-gray-700 mb-2">Heure d'arrivée estimée</label>
-            <input
-              v-model="formattedArrivalTime"
-              type="text"
-              @input="formattedArrivalTime = applyTimeMask($event.target.value)"
-              placeholder="HH:mm (ex: 16:45)"
-             
-              pattern="([0-1]?[0-9]|2[0-3]):[0-5][0-9]"
+            <select
+              v-model="trip.estimate_arrival_time"
               class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               required
-            />
+            >
+              <option value="" disabled selected>--:--</option>
+              <option v-for="time in timeOptions" :key="time" :value="time">{{ time }}</option>
+            </select>
           </div>
         </div>
       </div>
@@ -534,7 +519,8 @@ body {
 input[type='text'],
 input[type='date'],
 input[type='number'],
-input[type='checkbox'] {
+input[type='checkbox'],
+select {
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 button {
