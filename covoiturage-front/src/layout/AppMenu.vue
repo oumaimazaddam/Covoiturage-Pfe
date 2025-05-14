@@ -12,32 +12,32 @@ if (role_id === 1) {
     // Admin : accès à tout
     model.value = [
         {
-            label: 'Carpool',
+            label: 'Covoiturage',
             items: [
-                { label: 'Dashboard Admin', icon: 'pi pi-home', to: '/dashboard' },
+                { label: 'Administrateur du tableau de bord', icon: 'pi pi-home', to: '/dashboard' },
                 { label: 'Gestion des droits des utilisateurs', icon: 'pi pi-user', to: '/uikit/utilisateur' },
                 { label: 'Utilisateurs En attent', icon: 'pi pi-users', to: '/uikit/list' },
                 { label: 'Gestion de Trajet', icon: 'pi pi-map', to: '/uikit/trajet', class: 'rotated-icon' },
                 { label: 'Liste de Reservation', icon: 'pi pi-book	', to: '/uikit/reservationL' },
-                { label: 'Feedbacks', icon: 'pi pi-comments', to: '/uikit/feedbacks' }
+                { label: 'Commentaires', icon: 'pi pi-comments', to: '/uikit/feedbacks' }
                
                 
 
             ]
         },
         {
-            label: 'UI Components',
+            label: 'Composants de linterface',
             items: [
                 
-                { label: 'User Profile', icon: 'pi pi-user', to: '/uikit/profile' },
+                { label: 'Profil utilisateur', icon: 'pi pi-user', to: '/uikit/profile' },
                
-                { label: 'Logout', icon: 'pi pi-sign-out', to: '/logout' }
+                { label: 'Déconnexion', icon: 'pi pi-sign-out', to: '/logout' }
             ]
         },
         {
-            label: 'Get Started',
+            label: 'Commencer',
             items: [
-                { label: 'View Source', icon: 'pi pi-fw pi-github', url: 'https://github.com/oumaimazaddam/Covoiturage-Pfe', target: '_blank' }
+                { label: 'Voir la source', icon: 'pi pi-fw pi-github', url: 'https://github.com/oumaimazaddam/Covoiturage-Pfe', target: '_blank' }
             ]
         }
     ];
@@ -48,9 +48,9 @@ if (role_id === 1) {
             label: 'UI Components',
             items: [
                
-                { label: 'User Profile', icon: 'pi pi-user', to: '/uikit/profile' },
+                { label: 'Profil utilisateur', icon: 'pi pi-user', to: '/uikit/profile' },
                
-                { label: 'Logout', icon: 'pi pi-sign-out', to: '/logout' }
+                { label: 'Déconnexion', icon: 'pi pi-sign-out', to: '/logout' }
             ]
         }
     ];

@@ -21,6 +21,7 @@ export default {
     return {
       trip: null,
       driver: null,
+      user: null, // Add user to store authenticated user data
       loading: true,
       error: null,
       map: null,
@@ -43,17 +44,40 @@ export default {
     '$route.params.id': {
       immediate: true,
       handler(newId) {
-        if (newId) this.fetchTripDetails();
+        if (newId) {
+          this.fetchTripDetails();
+          this.fetchUserDetails(); // Fetch user details when route changes
+        }
       },
     },
   },
   created() {
     this.fetchTripDetails();
+    this.fetchUserDetails(); // Fetch user details on component creation
   },
   beforeUnmount() {
     this.destroyMap();
   },
   methods: {
+    async fetchUserDetails() {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        console.warn("No access token found, user not logged in");
+        this.user = null;
+        return;
+      }
+      try {
+        const response = await axios.get("http://127.0.0.1:8000/api/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("User data:", response.data);
+        this.user = response.data; // Assuming response.data contains { id, name, role_id, ... }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+        this.user = null;
+        this.error = this.error || "Impossible de charger les informations de l'utilisateur.";
+      }
+    },
     destroyMap() {
       if (this.routingControl) {
         this.map.removeControl(this.routingControl);
@@ -184,7 +208,6 @@ export default {
         this.loading = false;
       }
     },
-
     isValidCoords(coords) {
       return (
         Array.isArray(coords) &&
@@ -199,7 +222,6 @@ export default {
         coords[1] <= 180
       );
     },
-
     parseCoords(coords, location) {
       try {
         // Handle null or undefined
@@ -269,7 +291,6 @@ export default {
         return null;
       }
     },
-
     initMap() {
       this.$nextTick(() => {
         const mapContainer = document.getElementById("map");
@@ -400,19 +421,16 @@ export default {
         }
       });
     },
-
     formatDate(date) {
       if (!date) return "";
       const options = { weekday: "long", year: "numeric", month: "long", day: "numeric" };
       return new Date(date).toLocaleDateString("fr-FR", options);
     },
-
     formatTime(time) {
       return time ? time.substring(0, 5) : "";
     },
-
     reserveTrip() {
-      if (this.trip?.available_seats > 0) {
+      if (this.trip?.available_seats > 0 && this.user?.role_id === 3) {
         this.$router.push(`/reservation/${this.trip.id}`);
       }
     },
@@ -448,8 +466,7 @@ export default {
               <div>
                 <p class="font-medium">Départ</p>
                 <p class="text-gray-700">{{ trip.departure }}</p>
-                <p v-if="isValidCoords(trip.departure_coords)" class="text-gray-500 text-sm">
-                </p>
+                <p v-if="isValidCoords(trip.departure_coords)" class="text-gray-500 text-sm"></p>
                 <p v-else class="text-red-500 text-sm">Coordonnées non disponibles</p>
               </div>
             </div>
@@ -458,11 +475,8 @@ export default {
               <div>
                 <p class="font-medium">Destination</p>
                 <p class="text-gray-700">{{ trip.destination }}</p>
-                <p v-if="isValidCoords(trip.destination_coords)" class="text-gray-500 text-sm">
-                </p>
-                
+                <p v-if="isValidCoords(trip.destination_coords)" class="text-gray-500 text-sm"></p>
                 <p v-else class="text-red-500 text-sm">Coordonnées non disponibles</p>
-                
               </div>
             </div>
           </div>
@@ -506,13 +520,9 @@ export default {
             <span class="text-blue-500 mr-2">👤</span> Conducteur
           </h2>
           <div v-if="driver" class="flex items-center space-x-4">
-           
             <div>
               <p class="font-medium">{{ driver.name || 'Nom non disponible' }}</p>
-              <div class="flex items-center mt-1">
-               
-                
-              </div>
+              <div class="flex items-center mt-1"></div>
             </div>
           </div>
           <div v-else class="text-gray-500">
@@ -543,17 +553,24 @@ export default {
         </div>
 
         <!-- Bouton de réservation -->
-        <button
-          @click="reserveTrip"
-          class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center space-x-2"
-          :disabled="trip.available_seats <= 0"
-        >
-          <span>📌</span>
-          <span>Réserver une place</span>
-        </button>
-
-        <div v-if="trip.available_seats <= 0" class="text-center text-red-500 text-sm mt-2">
-          Désolé, ce trajet est complet.
+        <div v-if="user && user.role_id === 3">
+          <button
+            @click="reserveTrip"
+            class="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+            :disabled="trip.available_seats <= 0"
+          >
+            <span>📌</span>
+            <span>Réserver une place</span>
+          </button>
+          <div v-if="trip.available_seats <= 0" class="text-center text-red-500 text-sm mt-2">
+            Désolé, ce trajet est complet.
+          </div>
+        </div>
+        <div v-else-if="user" class="text-center text-red-500 text-sm mt-2">
+          La réservation est réservée aux passagers uniquement.
+        </div>
+        <div v-else class="text-center text-red-500 text-sm mt-2">
+          Veuillez vous connecter pour réserver un trajet.
         </div>
       </div>
     </div>
