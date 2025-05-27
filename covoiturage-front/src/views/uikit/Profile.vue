@@ -223,17 +223,12 @@ export default {
         <p v-else class="text-sm text-muted-color">Aucune notification</p>
       </div>
     </div>
-    <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen">
-      <div class="flex flex-col items-center justify-center mt-16 mb-8">
-        <div
-          style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 45%)"
-        >
+    <div class="bg-surface-50 dark:bg-surface-950 min-h-screen w-full p-8">
+  <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 45%)">
+    <div class="w-full h-full bg-surface-0 dark:bg-surface-900 py-12 px-8 sm:px-16" style="border-radius: 53px; min-height: 100vh; box-sizing: border-box;">
           <div class="w-full bg-surface-0 dark:bg-surface-900 py-12 px-8 sm:px-16" style="border-radius: 53px">
             <div class="text-center mb-8">
               <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Modifier le Profil</div>
-
-               
-
               <span class="text-muted-color font-medium">Mettez à jour vos informations</span>
             </div>
 
@@ -259,7 +254,7 @@ export default {
                   type="number"
                   maxlength="8"
                   @input="profile.phone_number = profile.phone_number.toString().slice(0, 8)"
-                  class="input-field"
+                  class="input-field no-spinner"
                 />
               </div>
 
@@ -416,5 +411,14 @@ export default {
 .field {
   overflow: visible;
   z-index: 50;
+}
+.no-spinner::-webkit-inner-spin-button,
+.no-spinner::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner {
+  -moz-appearance: textfield; /* Pour Firefox */
 }
 </style>

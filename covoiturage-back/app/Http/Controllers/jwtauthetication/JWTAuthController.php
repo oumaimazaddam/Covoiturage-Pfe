@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 class JWTAuthController extends Controller
 {
-    // User registration
+    
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -53,7 +53,7 @@ class JWTAuthController extends Controller
         return response()->json(compact('user','token'), 201);
     }
 
-    // User login
+   
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
@@ -63,13 +63,13 @@ class JWTAuthController extends Controller
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
 
-            // Get the authenticated user.
+          
             $user = Auth::user();
             if (!$user->is_active) {
                 return response()->json(['error' => 'Votre compte est en attente de validation. Contactez un administrateur.'], 403);
             }
 
-            // (optional) Attach the role to the token.
+         
             $access_token = JWTAuth::claims(['role_id' => $user->role_id])->fromUser($user);
             $access_token = JWTAuth::claims(['name' => $user->name])->fromUser($user);
 
@@ -97,7 +97,7 @@ class JWTAuthController extends Controller
         ]);
     }
 
-    // Get authenticated user
+    
     public function getUser()
     {
         try {
@@ -105,13 +105,13 @@ class JWTAuthController extends Controller
                 return response()->json(['error' => 'User not found'], 404);
             }
     
-            // Retourner uniquement l'utilisateur authentifié
+           
             return response()->json($user, 200);
         } catch (JWTException $e) {
             return response()->json(['error' => 'Invalid token'], 400);
         }
     }
-    // User logout
+    
     public function logout()
     {
         JWTAuth::invalidate(JWTAuth::getToken());
@@ -133,24 +133,23 @@ class JWTAuthController extends Controller
 public function deleteUser(Request $request, $id)
 {
     try {
-        // Vérifier si l'utilisateur est authentifié
+        
         $user = JWTAuth::parseToken()->authenticate();
 
-        // Vérifier si l'utilisateur a les droits nécessaires pour supprimer un compte
-        // Par exemple, on peut vérifier si l'utilisateur est un administrateur (role_id === 1)
+       
         if ($user->role_id !== 1) {
-            return response()->json(['error' => 'Unauthorized'], 403); // Accès interdit si l'utilisateur n'est pas administrateur
+            return response()->json(['error' => 'Unauthorized'], 403); 
         }
 
-        // Trouver l'utilisateur à supprimer
+        
         $userToDelete = User::find($id);
 
-        // Vérifier si l'utilisateur existe
+       
         if (!$userToDelete) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        // Supprimer l'utilisateur
+       
         $userToDelete->delete();
 
         return response()->json(['message' => 'User deleted successfully'], 200);
@@ -162,24 +161,23 @@ public function deleteUser(Request $request, $id)
 public function updateUser(Request $request, $id)
 {
     try {
-        // Vérifier si l'utilisateur est authentifié
+     
         $user = JWTAuth::parseToken()->authenticate();
 
-        // Vérifier si l'utilisateur a les droits nécessaires pour mettre à jour un compte
-        // Par exemple, vérifier si l'utilisateur est un administrateur (role_id === 1)
+       
         if ($user->role_id !== 1) {
             return response()->json(['error' => 'Unauthorized'], 403); // Accès interdit si l'utilisateur n'est pas administrateur
         }
 
-        // Trouver l'utilisateur à mettre à jour
+     
         $userToUpdate = User::find($id);
 
-        // Vérifier si l'utilisateur existe
+       
         if (!$userToUpdate) {
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        // Valider les nouvelles données
+       
         $validator = Validator::make($request->all(), [
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|string|email|max:255|unique:users,email,' . $id, // Exclure l'email actuel de la validation
@@ -194,7 +192,7 @@ public function updateUser(Request $request, $id)
             return response()->json($validator->errors()->toJson(), 400);
         }
 
-        // Mettre à jour les informations de l'utilisateur
+      
         $userToUpdate->update([
             'name' => $request->get('name', $userToUpdate->name),
             'email' => $request->get('email', $userToUpdate->email),
@@ -214,23 +212,23 @@ public function updateUser(Request $request, $id)
 public function activateUser($id)
 {
     try {
-        // Récupère l'utilisateur authentifié (l'admin)
+        
         $admin = JWTAuth::parseToken()->authenticate();
 
-        // Vérifie si l'utilisateur authentifié est un administrateur
+       
         if ($admin->role_id !== 1) {
             return response()->json(['error' => 'Accès interdit'], 403); // Accès refusé si ce n'est pas un administrateur
         }
 
-        // Recherche l'utilisateur à activer par son ID
+        
         $user = User::findOrFail($id);
 
-        // Si l'utilisateur est déjà actif
+        
         if ($user->is_active) {
             return response()->json(['message' => 'L\'utilisateur est déjà actif'], 400); // L'utilisateur est déjà actif
         }
 
-        // Active l'utilisateur
+        
         $user->is_active = true;
         $user->save();
 
@@ -240,20 +238,20 @@ public function activateUser($id)
         return response()->json(['error' => 'Erreur interne'], 500);
     }
 }
- // Méthode pour récupérer la liste des utilisateurs non activés (uniquement pour l'admin)
+ 
  public function getUsers()
  {
      try {
-         // Authentifier l'administrateur
+        
          $admin = JWTAuth::parseToken()->authenticate();
          if ($admin->role_id !== 1) {
-             return response()->json(['error' => 'Accès interdit'], 403); // Vérification que l'utilisateur est un administrateur
+             return response()->json(['error' => 'Accès interdit'], 403); 
          }
 
-         // Récupérer les utilisateurs qui ne sont pas activés
+        
          $users = User::where('is_active', false)->get();
 
-         return response()->json($users, 200); // Retourner la liste des utilisateurs non activés
+         return response()->json($users, 200); 
      } catch (\Exception $e) {
          return response()->json(['error' => 'Erreur interne'], 500);
      }

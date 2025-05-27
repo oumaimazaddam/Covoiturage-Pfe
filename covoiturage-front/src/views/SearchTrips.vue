@@ -25,24 +25,20 @@ export default {
       this.searchPerformed = true;
 
       try {
-        // Créer les paramètres de recherche uniquement si des valeurs sont fournies
         const params = {};
         if (this.search.departure.trim()) params.departure = this.search.departure.trim();
         if (this.search.destination.trim()) params.destination = this.search.destination.trim();
         if (this.search.trip_date) params.trip_date = this.search.trip_date;
 
-        // Requête API pour récupérer les trajets (sans authentification)
         const response = await axios.get("http://127.0.0.1:8000/api/search-trip", {
           params,
         });
 
         this.trips = response.data;
 
-        // Récupérer les détails du conducteur pour chaque trajet
         await Promise.all(
           this.trips.map(async (trip) => {
             try {
-              // Requête pour les détails du conducteur (sans authentification)
               const driverResponse = await axios.get(`http://127.0.0.1:8000/api/trips/${trip.id}/driver`);
               trip.driver_name = driverResponse.data.name || "Non spécifié";
               trip.driver_photo = driverResponse.data.photo_profile || "https://via.placeholder.com/80";
@@ -61,7 +57,11 @@ export default {
       }
     },
 
-    goToTripDetails(tripId) {
+    goToTripDetails(tripId, availableSeats) {
+      if (availableSeats === 0) {
+        alert("Ce trajet n'a plus de places disponibles.");
+        return;
+      }
       this.$router.push(`/detailsTrip/${tripId}`);
     },
 
@@ -70,7 +70,6 @@ export default {
     },
   },
   mounted() {
-    // Charger tous les trajets disponibles au démarrage
     this.fetchTrips();
   },
 };
@@ -82,7 +81,7 @@ export default {
     <div class="sticky top-1 z-50">
       <div class="h-[300px] bg-cover bg-center brightness-70 relative"
         style="background-image: url('https://images.unsplash.com/photo-1686199948265-ddc4ebb1cc92?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
-        <h2 class="text-4xl font-bold text-white text-center pt-20 drop-shadow-lg">Où voulez-vous aller </h2>
+        <h2 class="text-4xl font-bold text-white text-center pt-20 drop-shadow-lg">Où voulez-vous aller</h2>
 
         <!-- Formulaire -->
         <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 w-[90%] max-w-5xl bg-white p-2 rounded-full shadow-lg flex items-center justify-between space-x-5 z-50">
@@ -119,8 +118,12 @@ export default {
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div v-for="trip in trips" :key="trip.id"
-            @click="goToTripDetails(trip.id)"
-            class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition duration-300 transform hover:-translate-y-1 cursor-pointer group">
+            @click="goToTripDetails(trip.id, trip.available_seats)"
+            :class="[
+              'rounded-xl shadow-md overflow-hidden border border-gray-200 transition duration-300 transform cursor-pointer group',
+              trip.available_seats === 0 ? 'bg-white bg-opacity-50 hover:shadow-md' : 'bg-white hover:shadow-xl hover:-translate-y-1'
+            ]"
+            :title="trip.available_seats === 0 ? 'Aucune place disponible' : ''">
 
             <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4">
               <div class="flex justify-between items-start">
@@ -146,7 +149,8 @@ export default {
                   </svg>
                   {{ formatTime(trip.departure_time) }}
                 </div>
-                <div class="flex items-center text-gray-600">
+                <div class="flex items-center"
+                  :class="trip.available_seats === 0 ? 'text-red-500' : 'text-gray-600'">
                   <svg class="w-5 h-5 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                   </svg>
@@ -170,7 +174,9 @@ export default {
             </div>
 
             <div class="bg-gray-50 px-4 py-3 text-right">
-              <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+              <button 
+                class="text-sm font-medium"
+                :class="trip.available_seats === 0 ? 'text-gray-400 cursor-not-allowed' : 'text-blue-600 hover:text-blue-800'">
                 Voir détails →
               </button>
             </div>
@@ -185,7 +191,7 @@ export default {
   </div>
 </template>
 
-<style>
+<style scoped>
 .group:hover .group-hover\:text-blue-600 {
   color: #2563eb;
 }

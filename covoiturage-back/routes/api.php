@@ -34,6 +34,7 @@ Route::get('shows-trip/{id}', [TripController::class, 'shows']);
 Route::get('trips', [TripController::class, 'index']); 
 Route::get('trips/{id}', [TripController::class, 'show']);
 Route::get('trips/{tripId}/driver', [TripController::class, 'getDriver']);
+
 //
 Route::middleware([JwtMiddleware::class])->group(function () {
     Route::get('users', [JWTAuthController::class, 'getUser']);
@@ -54,6 +55,7 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::get('trips', [TripController::class, 'index']);
     Route::get('/all-trips', [TripController::class, 'allTrips']); 
     Route::get('shows-trip/{id}', [TripController::class, 'shows']);
+    Route::get('/dashboard/counts', [TripController::class, 'getDashboardCounts']);
     
     //Reservation
     Route::post('trips/{tripId}/passenger/{passengerId}', [TripController::class, 'addPassenger']);

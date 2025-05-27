@@ -97,6 +97,36 @@ class TripController extends Controller
     ], 201);
 
     }
+    public function getDashboardCounts()
+    {
+        try {
+            // Count total users
+            $totalUsers = User::where('is_active', true)->count();
+
+            // Count drivers (users with role_id = 2, assuming role_id 2 is for drivers)
+            $driversCount = User::where('is_active', true)
+                ->where('role_id', 2)
+                ->count();
+
+            // Count passengers (users with role_id = 3, assuming role_id 3 is for passengers)
+            $passengersCount = User::where('is_active', true)
+                ->where('role_id', 3)
+                ->count();
+
+            // Count total trips
+            $tripsCount = Trip::count();
+
+            return response()->json([
+                'total_users' => $totalUsers,
+                'drivers' => $driversCount,
+                'passengers' => $passengersCount,
+                'trips' => $tripsCount,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Internal server error'], 500);
+        }
+    }
+    
 
     public function update(Request $request, $id)
     {
@@ -166,7 +196,7 @@ class TripController extends Controller
             return response()->json(['message' => 'Trip or Passenger not found'], 404);
         }
         if ($trip->passengers()->where('passenger_id', $passengerId)->exists()) {
-            return response()->json(['message' => 'Passenger already reserved'], 422);
+            return response()->json(['message' => 'Passager déjà réservé'], 422);
         }
         if ($trip->available_seats <= 0) {
             return response()->json(['message' => 'No seats available'], 422);
@@ -216,7 +246,7 @@ class TripController extends Controller
 {
     // Check if the authenticated user is the passenger trying to cancel
     if (Auth::id() && Auth::id() != $passengerId) {
-        return response()->json(['message' => 'Unauthorized to cancel reservation for another user'], 403);
+        return response()->json(['message' => 'Non autorisé à annuler la réservation pour un autre utilisateur'], 403);
     }
 
     $trip = Trip::find($tripId);

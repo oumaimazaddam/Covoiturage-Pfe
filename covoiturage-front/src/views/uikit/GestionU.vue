@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { Button, DataTable, Column } from 'primevue';
@@ -10,7 +10,7 @@ const showModal = ref(false);
 const currentUser = ref(null);
 const errorMessage = ref('');
 const router = useRouter();
-
+const searchQuery = ref('');
 const formData = ref({
   name: '',
   email: '',
@@ -24,6 +24,17 @@ const formData = ref({
 });
 const roleMapping = { 1: 'Admin', 2: 'Driver', 3: 'Passenger' };
 const userToEdit = ref(null);
+
+const filteredUsers = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return users.value;
+  }
+  return users.value.filter(user =>
+    user.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+    
+  );
+  
+});
 
 const fetchCurrentUser = async () => {
   const token = localStorage.getItem('access_token');
@@ -62,7 +73,6 @@ const fetchUsers = async () => {
     const response = await axios.get('http://127.0.0.1:8000/api/admin/users', {
       headers: { 'Authorization': `Bearer ${token}` },
     });
-    // Vérifier si la réponse est un tableau, sinon extraire le champ 'data'
     users.value = Array.isArray(response.data) ? response.data : response.data.data || [];
     console.log('Réponse API brute:', response.data);
     console.log('Utilisateurs assignés:', users.value);
@@ -70,7 +80,7 @@ const fetchUsers = async () => {
   } catch (error) {
     errorMessage.value = error.response?.data?.message || 'Erreur lors de la récupération des utilisateurs.';
     console.error('Erreur API:', error.response ? error.response.data : error);
-    users.value = []; // Assurer un tableau vide en cas d'erreur
+    users.value = [];
     loading.value = false;
   }
 };
@@ -201,16 +211,25 @@ onMounted(async () => {
     <div v-else>
       <h2 class="text-2xl font-semibold mb-4">Liste des utilisateurs</h2>
       <div v-if="errorMessage" class="text-red-500 mb-4">{{ errorMessage }}</div>
-      <div class="mb-4">
+      <div class="mb-4 flex justify-between items-center">
         <button 
           @click="openModal()" 
           class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700"
         >
           Ajouter un compte
         </button>
+        <div class="relative w-1/3">
+          <input 
+            v-model="searchQuery" 
+            type="text" 
+            placeholder="Rechercher par Nom " 
+            class="p-2 pl-10 w-full border rounded"
+          />
+          <i class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+        </div>
       </div>
       <div v-if="loading" class="text-center text-gray-500">Chargement...</div>
-      <DataTable v-else :value="users" :paginator="true" :rows="5" dataKey="id" showGridlines responsiveLayout="scroll">
+      <DataTable v-else :value="filteredUsers" :paginator="true" :rows="5" dataKey="id" showGridlines responsiveLayout="scroll">
         <template #empty>Aucun utilisateur trouvé.</template>
         <template #loading>Chargement des utilisateurs...</template>
         <Column field="name" header="Nom" sortable></Column>

@@ -36,7 +36,7 @@ const fetchTripHistory = async () => {
   }
 };
 
-// 📝 Récupération des avis pour un trajet
+
 const fetchTripReviews = async (tripId) => {
   try {
     const token = localStorage.getItem('access_token');
@@ -49,7 +49,7 @@ const fetchTripReviews = async (tripId) => {
     });
 
     console.log('Reviews API response:', response.data);
-    // Filter reviews for the specific trip_id
+   
     selectedTripReviews.value = response.data.reviews.filter(review => review.trip_id === tripId) || [];
     selectedTripId.value = tripId;
     showReviewsModal.value = true;
@@ -86,7 +86,7 @@ const confirmDeleteTrip = async (tripId) => {
   }
 };
 
-// ✏️ Modifier un trajet
+
 const editTrip = (tripData) => {
   console.log('editTrip called with tripData:', tripData);
   const formattedData = {
@@ -110,20 +110,17 @@ const editTrip = (tripData) => {
   });
 };
 
-// 📝 Naviguer vers la page pour soumettre un avis
 
-
-// 📅 Format date
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString('fr-FR');
 };
 
-// ⏰ Format heure
+
 const formatTime = (timeString) => {
   return timeString?.substring(0, 5) || '';
 };
 
-// 🟢 Statut
+
 const getStatusText = (status) => {
   return {
     active: 'Actif',
