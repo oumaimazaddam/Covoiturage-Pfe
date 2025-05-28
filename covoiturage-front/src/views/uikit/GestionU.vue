@@ -234,7 +234,7 @@ onMounted(async () => {
         <template #loading>Chargement des utilisateurs...</template>
         <Column field="name" header="Nom" sortable></Column>
         <Column field="email" header="Email" sortable></Column>
-        <Column field="phone_number" header="Téléphone" sortable></Column>
+        <Column field="phone_number" header="Téléphone"  maxlength="8" sortable></Column>
         <Column field="birthday" header="Date de naissance" sortable></Column>
         <Column header="Rôle" sortable>
           <template #body="{ data }">
@@ -278,7 +278,7 @@ onMounted(async () => {
             <input v-model="formData.email" type="email" placeholder="Email" class="mb-4 p-2 w-full border rounded" required />
             <input v-model="formData.password" type="password" placeholder="Mot de passe" class="mb-4 p-2 w-full border rounded" v-if="!userToEdit" />
             <input v-model="formData.password_confirmation" type="password" placeholder="Confirmer le mot de passe" class="mb-4 p-2 w-full border rounded" v-if="!userToEdit" />
-            <input v-model="formData.phone_number" type="text" placeholder="Téléphone" class="mb-4 p-2 w-full border rounded" required />
+            <input v-model="formData.phone_number" type="text" placeholder="Téléphone"  maxlength="8" class="mb-4 p-2 w-full border rounded" required />
             <input v-model="formData.birthday" type="date" placeholder="Date de naissance" class="mb-4 p-2 w-full border rounded" required />
             <input v-model="formData.role_id" type="number" placeholder="Rôle (1=Admin, 2=Driver, 3=Passenger)" class="mb-4 p-2 w-full border rounded" required />
             <input v-model="formData.car_id" type="text" placeholder="Matricule du véhicule" class="mb-4 p-2 w-full border rounded" />

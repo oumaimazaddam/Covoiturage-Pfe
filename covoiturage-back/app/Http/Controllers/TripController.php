@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Events\NewTripPublished;
 use App\Events\NewTripToast;
+use App\Events\TripUpdated;
 class TripController extends Controller
 {
    
@@ -131,7 +132,7 @@ class TripController extends Controller
     public function update(Request $request, $id)
     {
         $trip = Trip::findOrFail($id);
-
+        $user = Auth::user();
         $validatedData = $request->validate([
             'departure' => 'nullable|string',
             'destination' => 'nullable|string',
@@ -146,6 +147,7 @@ class TripController extends Controller
         ]);
 
         $trip->update($validatedData);
+        event(new TripUpdated($trip, $user->id, $user->name));
         return response()->json($trip);
     }
 

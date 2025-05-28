@@ -6,7 +6,7 @@ export const useTripStore = defineStore('trip', {
     notifications: [],
     showNotifications: false,
     currentUserId: localStorage.getItem('user_id'),
-    isListening: false, // Track if listener is active
+    isListening: false,
   }),
 
   actions: {
@@ -44,7 +44,6 @@ export const useTripStore = defineStore('trip', {
         window.Echo.channel('trips-toast')
           .listen('.new-trip-toast', (data) => {
             console.log('New trip toast event received:', data);
-            // Only add notification if the current user is not the trip creator
             if (data.user_id !== parseInt(this.currentUserId)) {
               const notification = {
                 type: 'info',
@@ -59,7 +58,6 @@ export const useTripStore = defineStore('trip', {
                 },
                 timestamp: new Date()
               };
-              // Check for duplicate notifications
               const isDuplicate = this.notifications.some(
                 (notif) => notif.trip.id === notification.trip.id && notif.timestamp.getTime() === notification.timestamp.getTime()
               );
@@ -72,6 +70,36 @@ export const useTripStore = defineStore('trip', {
               }
             } else {
               console.log('Notification ignored: User is the trip creator');
+            }
+          })
+          .listen('.trip-updated', (data) => {
+            console.log('Trip updated event received:', data);
+            if (data.user_id !== parseInt(this.currentUserId)) {
+              const notification = {
+                type: 'warning',
+                message: `Trajet modifié par ${data.trip.driver_name}: ${data.trip.departure} → ${data.trip.destination}`,
+                trip: {
+                  id: data.trip.id,
+                  departure: data.trip.departure,
+                  destination: data.trip.destination,
+                  trip_date: data.trip.trip_date,
+                  departure_time: data.trip.departure_time,
+                  driver_name: data.trip.driver_name
+                },
+                timestamp: new Date()
+              };
+              const isDuplicate = this.notifications.some(
+                (notif) => notif.trip.id === notification.trip.id && notif.timestamp.getTime() === notification.timestamp.getTime()
+              );
+              if (!isDuplicate) {
+                this.notifications.push(notification);
+                toast.warning(notification.message);
+                console.log('Added notification for trip update:', notification);
+              } else {
+                console.log('Duplicate update notification ignored:', notification);
+              }
+            } else {
+              console.log('Update notification ignored: User is the trip updater');
             }
           })
           .listen('pusher:subscription_succeeded', () => {
