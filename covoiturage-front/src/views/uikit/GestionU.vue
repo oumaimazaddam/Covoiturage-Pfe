@@ -211,23 +211,23 @@ onMounted(async () => {
     <div v-else>
       <h2 class="text-2xl font-semibold mb-4">Liste des utilisateurs</h2>
       <div v-if="errorMessage" class="text-red-500 mb-4">{{ errorMessage }}</div>
-      <div class="mb-4 flex justify-between items-center">
-        <button 
-          @click="openModal()" 
-          class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700"
-        >
-          Ajouter un compte
-        </button>
-        <div class="relative w-1/3">
-          <input 
-            v-model="searchQuery" 
-            type="text" 
-            placeholder="Rechercher par Nom " 
-            class="p-2 pl-10 w-full border rounded"
-          />
-          <i class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-        </div>
-      </div>
+   <div class="mb-4 flex items-center flex-col sm:flex-row">
+  <div class="relative w-full sm:w-1/3">
+    <input 
+      v-model="searchQuery" 
+      type="text" 
+      placeholder="Rechercher par Nom" 
+      class="p-2 pl-10 w-full border rounded"
+    />
+    <i class="pi pi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+  </div>
+  <button 
+    @click="openModal()" 
+    class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-700 mt-2 sm:mt-0 sm:ml-auto"
+  >
+    Ajouter un compte
+  </button>
+</div>
       <div v-if="loading" class="text-center text-gray-500">Chargement...</div>
       <DataTable v-else :value="filteredUsers" :paginator="true" :rows="5" dataKey="id" showGridlines responsiveLayout="scroll">
         <template #empty>Aucun utilisateur trouvé.</template>

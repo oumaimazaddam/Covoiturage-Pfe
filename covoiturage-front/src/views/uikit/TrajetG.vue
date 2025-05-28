@@ -129,26 +129,25 @@ const formatStatus = (status) => {
     <div class="card">
         <h2 class="font-semibold text-2xl mb-4">Gestion des Trajets</h2>
         <div class="flex gap-4 mb-6">
-            <button 
-                @click="activeTab = 'active'" 
-                :class="[
-                    'py-2 px-4 rounded-lg font-medium transition-all duration-200',
-                    activeTab === 'active' ? 'bg-primary text-white font-bold' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                ]"
-            >
-                Trajets Actifs
-            </button>
-            <button 
-                @click="activeTab = 'completed'" 
-                :class="[
-                    'py-2 px-4 rounded-lg font-medium transition-all duration-200',
-                    activeTab === 'completed' ? 'bg-primary text-white font-bold' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                ]"
-            >
-                Trajets Terminés
-            </button>
-        </div>
-
+    <button 
+        @click="activeTab = 'active'" 
+        :class="[
+            'py-2 px-4 rounded-lg font-medium transition-all duration-200 ml-auto',
+            activeTab === 'active' ? 'bg-primary text-white font-bold' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        ]"
+    >
+        Trajets Actifs
+    </button>
+    <button 
+        @click="activeTab = 'completed'" 
+        :class="[
+            'py-2 px-4 rounded-lg font-medium transition-all duration-200',
+            activeTab === 'completed' ? 'bg-primary text-white font-bold' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        ]"
+    >
+        Trajets Terminés
+    </button>
+</div>
         <DataTable 
             :value="activeTab === 'active' ? activeTrips : completedTrips" 
             :loading="loadingTrips" 

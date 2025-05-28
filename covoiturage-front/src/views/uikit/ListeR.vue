@@ -39,26 +39,26 @@ onMounted(() => {
 <template>
   <div class="card">
     <h2 class="font-semibold text-2xl mb-4">Gestion des Réservations</h2>
-    <div class="flex gap-4 mb-6">
-      <button 
-        @click="activeTab = 'active'" 
-        :class="[
-          'py-2 px-4 rounded-lg font-medium transition-all duration-200',
-          activeTab === 'active' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-        ]"
-      >
-        Réservations Actives
-      </button>
-      <button 
-        @click="activeTab = 'completed'" 
-        :class="[
-          'py-2 px-4 rounded-lg font-medium transition-all duration-200',
-          activeTab === 'completed' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-        ]"
-      >
-        Réservations Terminées
-      </button>
-    </div>
+   <div class="flex gap-4 mb-6 justify-end">
+  <button 
+    @click="activeTab = 'active'" 
+    :class="[
+      'py-2 px-4 rounded-lg font-medium transition-all duration-200',
+      activeTab === 'active' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+    ]"
+  >
+    Réservations Actives
+  </button>
+  <button 
+    @click="activeTab = 'completed'" 
+    :class="[
+      'py-2 px-4 rounded-lg font-medium transition-all duration-200',
+      activeTab === 'completed' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+    ]"
+  >
+    Réservations Terminées
+  </button>
+</div>
 
     <DataTable 
       :value="activeTab === 'active' ? activeReservations : completedReservations" 
