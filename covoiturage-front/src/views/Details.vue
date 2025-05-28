@@ -5,7 +5,7 @@ export default {
   data() {
     return {
       trips: [],
-      unreadNotifications: 0, // valeur par défaut
+      unreadNotifications: 0,
     };
   },
   mounted() {
@@ -59,7 +59,7 @@ export default {
     },
 
     reserveTrip(trip) {
-      alert(`Réservation du trajet ${trip.departure} → ${trip.destination}`);
+      this.$router.push({ name: 'TripDetails', params: { id: trip.id } });
     },
 
     voteTrip(tripId, voteType) {
@@ -190,7 +190,7 @@ export default {
               <span class="mr-1">↓</span> {{ trip.downvotes || 0 }}
             </button>
           </div>
-          
+
           <div class="flex space-x-2">
             <div 
               v-if="trip.available_seats <= 0" 
@@ -209,6 +209,7 @@ export default {
             </button>
 
             <router-link 
+              v-if="trip.available_seats > 0"
               :to="{ name: 'messenger', query: { tripId: trip.id } }"
               class="flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-700 text-white text-sm font-semibold rounded-lg shadow hover:from-green-600 hover:to-green-800 transition duration-200"
             >

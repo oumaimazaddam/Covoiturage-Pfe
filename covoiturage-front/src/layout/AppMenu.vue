@@ -34,12 +34,7 @@ if (role_id === 1) {
                 { label: 'Déconnexion', icon: 'pi pi-sign-out', to: '/logout' }
             ]
         },
-        {
-            label: 'Commencer',
-            items: [
-                { label: 'Voir la source', icon: 'pi pi-fw pi-github', url: 'https://github.com/oumaimazaddam/Covoiturage-Pfe', target: '_blank' }
-            ]
-        }
+        
     ];
 } else {
     // Rôles 2 et 3 : menu limité

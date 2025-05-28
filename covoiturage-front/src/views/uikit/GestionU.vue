@@ -243,12 +243,12 @@ onMounted(async () => {
         </Column>
         <Column field="car_id" header="Matricule de véhicule" sortable>
           <template #body="{ data }">
-            {{ data.car_id || 'N/A' }}
+            {{ data.car_id  }}
           </template>
         </Column>
         <Column field="drivingLicence" header="Permis" sortable>
           <template #body="{ data }">
-            {{ data.drivingLicence || 'N/A' }}
+            {{ data.drivingLicence  }}
           </template>
         </Column>
         <Column header="Actions">
