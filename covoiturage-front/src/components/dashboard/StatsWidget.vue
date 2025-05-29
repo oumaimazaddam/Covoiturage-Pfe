@@ -59,7 +59,7 @@ export default {
         <div class="card mb-0">
             <div class="flex justify-between mb-4">
                 <div>
-                    <span class="block text-muted-color font-medium mb-4">conducteurs</span>
+                    <span class="block text-muted-color font-medium mb-4">Conducteurs</span>
                     <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">{{ counts.drivers || 0 }}</div>
                 </div>
                 <div class="flex items-center justify-center bg-orange-100 dark:bg-orange-400/10 rounded-border" style="width: 5.5rem; height: 4.5rem">
