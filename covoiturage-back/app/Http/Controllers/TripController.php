@@ -331,5 +331,30 @@ public function getReservationsByPassenger($passengerId)
 
     return response()->json($reservations);
 }
+public function tripsByCity(Request $request)
+{
+    try {
+        // Récupérer tous les trajets et regrouper par ville de départ
+        $tripsByCity = Trip::select('departure')
+            ->groupBy('departure')
+            ->get()
+            ->mapWithKeys(function ($trip) {
+                return [$trip->departure => Trip::where('departure', $trip->departure)->count()];
+            });
 
+        // Convertir en format adapté pour le frontend
+        $cities = $tripsByCity->keys()->toArray();
+        $counts = $tripsByCity->values()->toArray();
+        $totalTrips = $tripsByCity->sum();
+
+        return response()->json([
+            'message' => 'Répartition des trajets par ville récupérée avec succès',
+            'cities' => $cities,
+            'counts' => $counts,
+            'total_trips' => $totalTrips,
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Erreur lors de la récupération des trajets par ville'], 500);
+    }
+}
 }

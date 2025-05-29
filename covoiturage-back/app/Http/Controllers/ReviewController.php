@@ -152,5 +152,42 @@ class ReviewController extends Controller
             'total_reviews' => $reviews->count(),
         ], 200);
     }
-    
+    public function allReviewsSummary(Request $request)
+{
+    try {
+        // Récupérer tous les avis
+        $reviews = Review::select('rating')
+            ->get();
+
+        // Compter les avis par catégorie
+        $ratingsCount = [
+            'tresSatisfait' => 0, // 4-5 étoiles
+            'satisfait' => 0,     // 3 étoiles
+            'insatisfait' => 0,   // 1-2 étoiles
+            'total_reviews' => $reviews->count(),
+        ];
+
+        foreach ($reviews as $review) {
+            if ($review->rating >= 4) {
+                $ratingsCount['tresSatisfait'] += 1;
+            } elseif ($review->rating === 3) {
+                $ratingsCount['satisfait'] += 1;
+            } else {
+                $ratingsCount['insatisfait'] += 1;
+            }
+        }
+
+        return response()->json([
+            'message' => 'Résumé des avis récupéré avec succès',
+            'ratings' => [
+                'tres_satisfait' => $ratingsCount['tresSatisfait'],
+                'satisfait' => $ratingsCount['satisfait'],
+                'insatisfait' => $ratingsCount['insatisfait'],
+            ],
+            'total_reviews' => $ratingsCount['total_reviews'],
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Erreur lors de la récupération du résumé des avis'], 500);
+    }
+}
 }

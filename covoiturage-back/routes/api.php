@@ -51,7 +51,7 @@ Route::middleware([JwtMiddleware::class])->group(function () {
     Route::put('trips/{id}', [TripController::class, 'update']);
     Route::delete('trips/{id}', [TripController::class, 'destroy']);
     Route::get('show-trip/{id}', [TripController::class, 'show']);
-   
+    Route::get('/trips-by-city', [TripController::class, 'tripsByCity']);
     Route::get('trips', [TripController::class, 'index']);
     Route::get('/all-trips', [TripController::class, 'allTrips']); 
     Route::get('shows-trip/{id}', [TripController::class, 'shows']);
@@ -81,7 +81,7 @@ Route::post('/reviews', [ReviewController::class, 'store']); // Submit a review
 Route::get('/drivers/{driverId}/reviews', [ReviewController::class, 'index']);
 Route::get('/all-reviews', [ReviewController::class, 'indexAdmin']);
 Route::get('/driver-reviews', [ReviewController::class, 'driverTripReviews']);
-
+Route::get('/reviews-summary', [ReviewController::class, 'allReviewsSummary']);
 
 //
 Route::post('/broadcasting/auth', function (Request $request) {
