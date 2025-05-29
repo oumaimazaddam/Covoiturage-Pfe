@@ -412,10 +412,71 @@ onMounted(() => {
             </div>
 
             <!-- Statut du trajet -->
-            <div class="mt-4">
-              <span class="font-semibold">Statut:</span>
-              <span :class="statusClass(tripItem.status)">{{ getStatusText(tripItem.status) }}</span>
-            </div>
+            <div class="mt-4 flex items-center">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    class="h-6 w-6 text-gray-400 mr-3"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    stroke-width="1.5"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+  <span class="font-semibold mr-2">Statut:</span>
+  <div class="flex items-center">
+    <svg
+      v-if="tripItem.status ==='active'"
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-5 w-5 text-green-500 mr-2"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M5 13l4 4L19 7"
+      />
+    </svg>
+    <svg
+      v-if="tripItem.status ==='completed'"
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-5 w-5 text-gray-500 mr-2"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+      />
+    </svg>
+    <svg
+      v-if="tripItem.status ==='canceled'"
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-5 w-5 text-red-500 mr-2"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M6 18L18 6M6 6l12 12"
+      />
+    </svg>
+    <span :class="statusClass(tripItem.status)">{{ getStatusText(tripItem.status) }}</span>
+  </div>
+</div>
 
             <!-- Boutons d'actions -->
             <div class="mt-8 flex justify-end space-x-4">
