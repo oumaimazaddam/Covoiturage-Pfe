@@ -23,7 +23,7 @@ function setColorOptions() {
         datasets: [
             {
                 label: 'Réservations',
-                data: [120, 150, 180, 200, 230, 250, 300], // Données de réservations par mois
+                data: [12, 15, 18, 15, 2, 5, 3], // Données de réservations par mois
                 fill: false,
                 backgroundColor: documentStyle.getPropertyValue('--p-primary-500'),
                 borderColor: documentStyle.getPropertyValue('--p-primary-500'),
@@ -31,7 +31,7 @@ function setColorOptions() {
             },
             {
                 label: 'Annulations',
-                data: [30, 20, 10, 40, 50, 30, 20], // Données d'annulations par mois
+                data: [0, 5, 0, 0, 0, 10, 2], // Données d'annulations par mois
                 fill: false,
                 backgroundColor: documentStyle.getPropertyValue('--p-primary-200'),
                 borderColor: documentStyle.getPropertyValue('--p-primary-200'),

@@ -17,7 +17,7 @@ function setChartData() {
                 type: 'bar',
                 label: 'Revenus générés',
                 backgroundColor: documentStyle.getPropertyValue('--p-primary-400'),
-                data: [5000, 6000, 4500, 7000, 8000, 9000, 9500, 8500, 6000, 7000, 6500, 7200],
+                data: [1000, 500, 400, 700, 800, 100, 200, 300, 50, 30, 20, 10],
                 barThickness: 32
             },
           
