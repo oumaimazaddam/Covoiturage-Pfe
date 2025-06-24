@@ -21,6 +21,16 @@ export default {
           this.messageType === "error",
       };
     },
+    reservationStatuses() {
+      return this.reservations.map(reservation => {
+        const tripDateTime = new Date(`${reservation.trip_date}T${reservation.departure_time}`);
+        const now = new Date();
+        return {
+          trip_id: reservation.trip_id,
+          status: tripDateTime < now ? "Terminé" : "Actif"
+        };
+      });
+    },
   },
   async mounted() {
     await this.loadUserData();
@@ -41,7 +51,7 @@ export default {
 
     async fetchReservations() {
       try {
-        const token = localStorage.getItem("access_token"); // ← ou "access_token", selon ton backend
+        const token = localStorage.getItem("access_token");
         const response = await axios.get(
           `http://localhost:8000/api/reservations/passenger/${this.currentUser.id}`,
           {
@@ -68,7 +78,7 @@ export default {
 
     async cancelReservation(tripId, passengerId) {
       try {
-        const token = localStorage.getItem("token"); // ← ou "access_token"
+        const token = localStorage.getItem("access_token");
         const response = await axios.delete(
           `http://localhost:8000/api/trips/${tripId}/passengers/${passengerId}`,
           {
@@ -107,6 +117,11 @@ export default {
         this.message = "";
         this.messageType = "";
       }, 5000);
+    },
+
+    getStatusForTrip(tripId) {
+      const statusObj = this.reservationStatuses.find(status => status.trip_id === tripId);
+      return statusObj ? statusObj.status : "Inconnu";
     },
   },
 };
@@ -163,9 +178,7 @@ export default {
         </router-link>
       </div>
 
-      <!-- Liste des réservations -->
       <div v-else class="space-y-8">
-        <!-- Message de notification -->
         <div
           v-if="message"
           :class="messageClass"
@@ -300,6 +313,33 @@ export default {
                     {{ formatDate(reservation.trip_date) }}</span
                   >
                 </div>
+                <div class="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6 text-gray-400 mr-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span class="text-gray-700"
+                    ><span class="font-semibold">Statut:</span>
+                    <span
+                      :class="{
+                        'text-green-600': getStatusForTrip(reservation.trip_id) === 'Actif',
+                        'text-gray-600': getStatusForTrip(reservation.trip_id) === 'Terminé'
+                      }"
+                    >
+                      {{ getStatusForTrip(reservation.trip_id) }}
+                    </span>
+                  </span>
+                </div>
               </div>
 
               <!-- Informations secondaires -->
@@ -327,7 +367,8 @@ export default {
                 <div class="flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="h-6 w-6 text-gray-400 mr-3"
+                    class="h-6 w-6 text-grayPSD
+                    -400 mr-3"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -387,7 +428,7 @@ export default {
               </div>
             </div>
 
-            <!-- Boutons d'actions -->
+            
             <div class="mt-8 flex justify-end space-x-4">
               <router-link
                 :to="`/feedbacksP/${reservation.trip_id}`"
@@ -410,6 +451,7 @@ export default {
                 Laisser un avis
               </router-link>
               <button
+                v-if="getStatusForTrip(reservation.trip_id) === 'Actif'"
                 @click="confirmCancel(reservation.trip_id, currentUser.id)"
                 class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 hover:scale-105"
               >
@@ -436,45 +478,42 @@ export default {
     </div>
   </div>
 </template>
-  
- 
-  
-  <style>
-  /* Custom animations */
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+
+<style>
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateX(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
   }
-  
-  .animate-slide-in {
-    animation: slideIn 0.5s ease-out;
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
-  
-  /* Ensure Inter or Poppins font is loaded */
-  @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-  
-  body {
-    font-family: "Inter", sans-serif;
-  }
-  </style>
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+body {
+  font-family: "Inter", sans-serif;
+}
+</style>

@@ -15,7 +15,7 @@ import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
-
+import DataTable from 'primevue/datatable';
 
 const app = createApp(App);
 app.use(Toast, {
@@ -51,6 +51,6 @@ app.use(ToastService);
 app.use(ConfirmationService);
 app.component('Dialog', Dialog);
 app.component('Button', Button);
-
+app.component('DataTable', DataTable);
 
 app.mount('#app');

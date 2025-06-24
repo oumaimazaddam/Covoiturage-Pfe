@@ -12,7 +12,7 @@ export default defineConfig({
     },
     optimizeDeps: {
         noDiscovery: true,
-        include: ['pusher-js', 'laravel-echo']
+        include: ['pusher-js', 'laravel-echo', 'leaflet']
     },
     plugins: [
         vue(),

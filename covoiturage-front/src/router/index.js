@@ -17,7 +17,7 @@ const router = createRouter({
         },
         { path: '/reservation/:tripId', name: 'reservation', component: Reservation},
         { path: '/register', name: 'Register', component: Register },
-        { path: '/ajouter-trajet', component: PublishTrip },
+        { path: '/ajouter-trajet', component: PublishTrip,meta: { requiresAuth: true, requiredRole: 2 } },
         { path: '/details', component: Details },
         {
             path: '/detailsTrip/:id',
