@@ -12,13 +12,18 @@ export default {
       rating: 0,
       emoji: '',
       comment: '',
-      emojis: ['😞', '😕', '😐', '😊', '😍'],
+      emojis: ['😞', '😕', '😐', '😊', '😍'], 
       loading: false,
       success: false,
       error: '',
     };
   },
   methods: {
+    setRatingAndEmoji(i) {
+      this.rating = i;
+     
+      this.emoji = this.emojis[i - 1] || '';
+    },
     async submitFeedback() {
       // Reset messages
       this.success = false;
@@ -34,14 +39,13 @@ export default {
       const tripId = parseInt(this.tripId, 10);
       if (isNaN(tripId) || tripId <= 0) {
         this.error = 'Identifiant de trajet invalide. Veuillez vérifier le trajet.';
-        console.error('Invalid tripId:', this.tripId); // Debug log
+        console.error('Invalid tripId:', this.tripId);
         return;
       }
 
       this.loading = true;
 
       try {
-        // Get token from localStorage
         const token = localStorage.getItem('access_token');
         if (!token) {
           this.error = 'Vous devez être connecté pour soumettre un avis.';
@@ -49,13 +53,12 @@ export default {
           return;
         }
 
-        // Prepare payload
         const payload = {
           trip_id: tripId,
           rating: parseInt(this.rating, 10),
           comment: this.comment || null,
         };
-        console.log('Sending payload:', payload); // Debug log
+        console.log('Sending payload:', payload);
 
         const response = await this.$axios.post(
           'http://localhost:8000/api/reviews',
@@ -76,7 +79,7 @@ export default {
           this.comment = '';
         }
       } catch (error) {
-        console.error('Error response:', error.response); // Debug log
+        console.error('Error response:', error.response);
         if (error.response) {
           if (error.response.status === 401) {
             this.error = 'Session invalide. Veuillez vous reconnecter.';
@@ -105,16 +108,15 @@ export default {
 
 <template>
   <div class="relative min-h-screen flex items-center justify-center bg-gray-50 px-4">
-    <!-- Feedback card -->
     <div class="max-w-6.5xl w-full p-40 bg-white shadow-3xl rounded-3xl z-20">
       <h2 class="text-3xl font-bold mb-12 text-center text-gray-800">Laissez un avis sur votre trajet</h2>
 
-      <!-- Note par étoiles -->
+     
       <div class="flex justify-center mb-6">
         <button
           v-for="i in 5"
           :key="i"
-          @click="rating = i"
+          @click="setRatingAndEmoji(i)"
           class="text-5xl transition-transform duration-150 hover:scale-110"
         >
           <span :class="i <= rating ? 'text-yellow-400' : 'text-gray-300'">★</span>
